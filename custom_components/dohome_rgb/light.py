@@ -18,7 +18,7 @@ from homeassistant.components.light import (
     LightEntity,
 )
 # pylint: disable=relative-beyond-top-level
-from .light import _dohome_percent, _dohome_to_int8
+from .convert import _dohome_percent, _dohome_to_int8
 
 _LOGGER = logging.getLogger(__name__)
 
