@@ -57,7 +57,7 @@ class DoHomeLight(LightEntity):
         self._color_temp = 128
         self._color_mode = COLOR_MODE_HS
         self._available = True
-        self.update()
+        self.update(True)
 
     @property
     def name(self):
@@ -174,14 +174,16 @@ class DoHomeLight(LightEntity):
                 self._color_temp = _dohome_to_uint8(state['m'] / brighness_percent)
         else:
             self._state = True
+            self._color_mode = COLOR_MODE_HS
+            self._rgb = list(map(_dohome_to_uint8, [state['r'], state['g'], state['b']]))
+            if not is_first:
+                return
             _, _, brightness = color_util.color_RGB_to_xy_brightness(
                 state['r'],
                 state['g'],
                 state['b']
             )
             self._brightness = int(brightness)
-            self._color_mode = COLOR_MODE_HS
-            self._rgb = list(map(_dohome_to_uint8, [state['r'], state['g'], state['b']]))
 
     def _send_command(self, cmd, data=None):
         result = _send_command(
