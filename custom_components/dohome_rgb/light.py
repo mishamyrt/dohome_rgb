@@ -18,7 +18,7 @@ from homeassistant.components.light import (
     LightEntity,
 )
 # pylint: disable=relative-beyond-top-level
-from .convert import _dohome_percent, _dohome_to_int8
+from .convert import _dohome_percent, _dohome_to_uint8
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,13 +173,13 @@ class DoHomeLight(LightEntity):
                 self._state = True
                 self._color_mode = COLOR_MODE_COLOR_TEMP
                 self._brightness = 255 * brighness_percent
-                self._color_temp = _dohome_to_int8(state['m'] / brighness_percent)
+                self._color_temp = _dohome_to_uint8(state['m'] / brighness_percent)
         else:
             self._state = True
             # TODO: Add brighness logic
             self._brightness = 255
             self._color_mode = COLOR_MODE_HS
-            self._rgb = list(map(_dohome_to_int8, [state['r'], state['g'], state['b']]))
+            self._rgb = list(map(_dohome_to_uint8, [state['r'], state['g'], state['b']]))
 
     def _send_cmd(self, cmd, data={}):
         data['cmd'] = cmd
