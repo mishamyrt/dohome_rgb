@@ -2,8 +2,6 @@
 from __future__ import annotations
 
 import logging
-import socket
-import json
 from datetime import timedelta
 import homeassistant.util.color as color_util
 import homeassistant.helpers.config_validation as cv
@@ -17,8 +15,9 @@ from homeassistant.components.light import (
     COLOR_MODE_HS,
     LightEntity,
 )
-# pylint: disable=relative-beyond-top-level
+
 from .convert import _dohome_percent, _dohome_to_uint8
+from .dohome_api import _send_command
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +32,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENTITIES, default=[]): cv.ensure_list,
 })
 
+# pylint: disable=unused-argument
 def setup_platform(hass, config, add_devices, discovery_info=None):
     '''
     Initialises submitted devices
@@ -49,7 +49,6 @@ class DoHomeLight(LightEntity):
     Entity of the DoHome light device
     '''
     def __init__(self, hass, device):
-        # pylint: disable=no-member
         self._device = device
         self._name = device[CONF_NAME]
         self._state = False
@@ -57,7 +56,6 @@ class DoHomeLight(LightEntity):
         self._brightness = 255
         self._color_temp = 128
         self._color_mode = COLOR_MODE_HS
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._available = True
         self.update()
 
@@ -156,13 +154,13 @@ class DoHomeLight(LightEntity):
             'w': int(white[0]),
             'm': int(white[1])
         }
-        self._send_cmd(6, data)
+        self._send_command(6, data)
 
     def update(self):
         '''
         Loads state from device
         '''
-        state = self._send_cmd(25)
+        state = self._send_command(25)
         if state is None:
             return
         if state['r'] + state['g'] + state['b'] == 0:
@@ -176,36 +174,21 @@ class DoHomeLight(LightEntity):
                 self._color_temp = _dohome_to_uint8(state['m'] / brighness_percent)
         else:
             self._state = True
-            # TODO: Add brighness logic
-            self._brightness = 255
+            _, _, brightness = color_util.color_RGB_to_xy_brightness(
+                state['r'],
+                state['g'],
+                state['b']
+            )
+            self._brightness = int(brightness)
             self._color_mode = COLOR_MODE_HS
             self._rgb = list(map(_dohome_to_uint8, [state['r'], state['g'], state['b']]))
 
-    def _send_cmd(self, cmd, data={}):
-        data['cmd'] = cmd
-        payload = json.dumps(data)
-        command = '&'.join([
-            'cmd=ctrl',
-            'devices={[' + self._device[CONF_SID] + ']}'
-            'op=' + payload
-        ])
-        _LOGGER.debug('command :%s', command)
-        try:
-            self._socket.settimeout(0.5)
-            self._socket.sendto(command.encode(), (self._device[CONF_IP], 6091))
-            data, _ = self._socket.recvfrom(1024)
-        except:
-            _LOGGER.debug('Request error: %s', self._name)
-            self._available = False
-            return None
-        self._available = True
-        if data is None:
-            return None
-        _LOGGER.debug('result :%s', data.decode('utf-8'))
-        dic = {i.split('=')[0]:i.split('=')[1] for i in data.decode('utf-8').split('&')}
-        resp = []
-        resp = json.loads(dic['op'])
-        if resp['cmd'] != cmd:
-            _LOGGER.debug('Non matching response. Expecting %s, but got %s', cmd, resp['cmd'])
-            return None
-        return resp
+    def _send_command(self, cmd, data=None):
+        result = _send_command(
+            self._device[CONF_IP],
+            self._device[CONF_SID],
+            cmd,
+            data
+        )
+        self._available = not result is None
+        return result
