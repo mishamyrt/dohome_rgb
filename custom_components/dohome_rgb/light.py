@@ -34,7 +34,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 # pylint: disable=unused-argument
 def setup_platform(hass, config, add_devices, discovery_info=None):
-    """Initialises submitted devices"""
+    """Initialise submitted devices."""
     devices = []
     for device in config[CONF_ENTITIES]:
         devices.append(DoHomeLight(hass, device))
@@ -42,7 +42,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         add_devices(devices)
 
 class DoHomeLight(LightEntity):
-    """Entity of the DoHome light device"""
+    """Entity of the DoHome light device."""
     def __init__(self, hass, device):
         self._device = device
         self._name = device[CONF_NAME]
