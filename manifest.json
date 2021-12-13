@@ -1,0 +1,9 @@
+{
+  "domain": "dohome",
+  "name": "dohome ha component",
+  "issue_tracker": "https://github.com/mishamyrt/dohome-lights/issues",
+  "documentation": "",
+  "requirements": [],
+  "iot_class": "local_polling",
+  "version": "0.1.0"
+}
