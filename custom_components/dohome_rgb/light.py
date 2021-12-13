@@ -119,7 +119,7 @@ class DoHomeLight(LightEntity):
         if ATTR_HS_COLOR in kwargs:
             self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             self._color_mode = COLOR_MODE_HS
-        if ATTR_COLOR_TEMP in kwargs:
+        elif ATTR_COLOR_TEMP in kwargs:
             self._color_temp = kwargs[ATTR_COLOR_TEMP]
             self._color_mode = COLOR_MODE_COLOR_TEMP
 
