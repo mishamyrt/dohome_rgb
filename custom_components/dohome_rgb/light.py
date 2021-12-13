@@ -21,12 +21,12 @@ from .dohome_api import _send_command
 
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=10)
+SCAN_INTERVAL = timedelta(seconds=6)
 
-CONF_ENTITIES = 'entities'
-CONF_NAME = 'name'
-CONF_SID = 'sid'
-CONF_IP = 'ip'
+CONF_ENTITIES = "entities"
+CONF_NAME = "name"
+CONF_SID = "sid"
+CONF_IP = "ip"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENTITIES, default=[]): cv.ensure_list,
@@ -34,20 +34,15 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 # pylint: disable=unused-argument
 def setup_platform(hass, config, add_devices, discovery_info=None):
-    '''
-    Initialises submitted devices
-    '''
+    """Initialises submitted devices"""
     devices = []
     for device in config[CONF_ENTITIES]:
         devices.append(DoHomeLight(hass, device))
     if len(devices) > 0:
         add_devices(devices)
 
-
 class DoHomeLight(LightEntity):
-    '''
-    Entity of the DoHome light device
-    '''
+    """Entity of the DoHome light device"""
     def __init__(self, hass, device):
         self._device = device
         self._name = device[CONF_NAME]
@@ -61,59 +56,61 @@ class DoHomeLight(LightEntity):
 
     @property
     def name(self):
-        '''
-        Return the name of the device.
-        '''
+        """Return the name of the device."""
         return self._name
 
     @property
     def unique_id(self):
-        """Return the unique_id of the device."""
+        """Return the unique id of the device."""
         return self._name
 
     @property
     def brightness(self):
-        '''Return the brightness of this light between 0..255.'''
+        """Return the brightness of the device."""
         return self._brightness
 
     @property
     def color_mode(self):
-        '''Return the color mode of this light'''
+        """Return the color mode of the device."""
         return self._color_mode
 
     @property
     def available(self):
-        '''Returns status of this light.'''
+        """Return status of the device."""
         return self._available
 
     @property
     def hs_color(self):
-        '''Return the color property.'''
+        """Return the color of the device."""
         return color_util.color_RGB_to_hs(*self._rgb)
 
     @property
     def is_on(self):
-        '''Return true if light is on.'''
+        """Return true if light is on."""
         return self._state
 
     @property
     def color_temp(self):
+        """Return the CT color value in mireds."""
         return self._color_temp
 
     @property
     def supported_color_modes(self):
+        """Flag supported color modes."""
         return { COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP }
 
     @property
     def min_mireds(self):
+        """Return the coldest color_temp that this light supports."""
         return 0
 
     @property
     def max_mireds(self):
+        """Return the warmest color_temp that this light supports."""
         return 255
 
     def turn_on(self, **kwargs):
-        '''Turn the light on.'''
+        """Turn the light on."""
         rgb = [0, 0, 0]
         white = [0, 0]
 
@@ -142,11 +139,12 @@ class DoHomeLight(LightEntity):
         self._set_state(rgb, white)
 
     def turn_off(self, **kwargs):
-        '''Turn the light off.'''
+        """Turn the light off."""
         self._state = False
         self._set_state([0, 0, 0], [0, 0])
 
     def _set_state(self, rgb, white):
+        """Set state to the device."""
         data = {
             'r': int(rgb[0]),
             'g': int(rgb[1]),
@@ -156,10 +154,8 @@ class DoHomeLight(LightEntity):
         }
         self._send_command(6, data)
 
-    def update(self):
-        '''
-        Loads state from device
-        '''
+    def update(self, is_first=False):
+        """Load state from the device."""
         state = self._send_command(25)
         if state is None:
             return
@@ -186,6 +182,7 @@ class DoHomeLight(LightEntity):
             self._brightness = int(brightness)
 
     def _send_command(self, cmd, data=None):
+        """Send command to the device."""
         result = _send_command(
             self._device[CONF_IP],
             self._device[CONF_SID],
