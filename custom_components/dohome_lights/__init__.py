@@ -1,1 +1,0 @@
-"""DoHome Lights integration."""

@@ -1,0 +1,1 @@
+"""DoHome RGB Lights integration."""

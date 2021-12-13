@@ -1,4 +1,4 @@
-"""Support for DoHome Lights"""
+"""Support for DoHome RGB Lights"""
 from __future__ import annotations
 
 import logging
@@ -18,7 +18,7 @@ from homeassistant.components.light import (
     LightEntity,
 )
 # pylint: disable=relative-beyond-top-level
-from .light import dohome_percent, dohome_to_int8
+from .light import _dohome_percent, _dohome_to_int8
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -169,17 +169,17 @@ class DoHomeLight(LightEntity):
             if state['w'] + state['m'] == 0:
                 self._state = False
             else:
-                brighness_percent = dohome_percent(state['m'] + state['w'])
+                brighness_percent = _dohome_percent(state['m'] + state['w'])
                 self._state = True
                 self._color_mode = COLOR_MODE_COLOR_TEMP
                 self._brightness = 255 * brighness_percent
-                self._color_temp = dohome_to_int8(state['m'] / brighness_percent)
+                self._color_temp = _dohome_to_int8(state['m'] / brighness_percent)
         else:
             self._state = True
             # TODO: Add brighness logic
             self._brightness = 255
             self._color_mode = COLOR_MODE_HS
-            self._rgb = list(map(dohome_to_int8, [state['r'], state['g'], state['b']]))
+            self._rgb = list(map(_dohome_to_int8, [state['r'], state['g'], state['b']]))
 
     def _send_cmd(self, cmd, data={}):
         data['cmd'] = cmd
