@@ -3,4 +3,3 @@ def _dohome_percent(value):
 
 def _dohome_to_int8(value):
     return 255 * _dohome_percent(value)
-

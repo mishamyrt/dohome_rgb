@@ -1,6 +1,6 @@
 deploy:
-	ssh hass 'rm -rf config/custom_components/dohome && mkdir -p config/custom_components/dohome'
-	scp -r ./src/* hass:config/custom_components/dohome
+	ssh hass 'rm -rf config/custom_components/dohome_lights && mkdir -p config/custom_components/dohome_lights'
+	scp -r custom_components/dohome_lights hass:config/custom_components/dohome_lights
 restart:
 	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
 configure:

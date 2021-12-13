@@ -1,6 +1,4 @@
-'''
-Support for DoHome
-'''
+"""Support for DoHome Lights"""
 from __future__ import annotations
 
 import logging
@@ -65,7 +63,9 @@ class DoHomeLight(LightEntity):
 
     @property
     def name(self):
-        """Return the name of the device."""
+        '''
+        Return the name of the device.
+        '''
         return self._name
 
     @property
