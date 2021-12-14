@@ -149,7 +149,7 @@ class DoHomeLight(LightEntity):
 
     def turn_off(self, **kwargs: Any):
         """Turn the light off."""
-        self._set_state([0, 0, 0], [0, 0])
+        self._set_state((0, 0, 0), (0, 0))
         self._state = False
 
     def _set_state(self, rgb: tuple[float, float, float], white: tuple[float, float]):
