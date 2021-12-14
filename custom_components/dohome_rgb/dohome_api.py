@@ -1,5 +1,6 @@
 """Provides possibilities for sending commands to DoHome devices"""
 # pylint: disable=no-name-in-module
+from __future__ import annotations
 from socket import AF_INET, SOCK_DGRAM, socket, error
 from json import dumps, loads
 from logging import getLogger
@@ -28,14 +29,17 @@ def _parse_response(resp: str) -> dict:
     return loads(data['op'])
 
 
-def _send_command(address: str, sid: str, cmd: int, data=None):
+def _send_command(address: str, sid: str, cmd: int, data=None) -> dict | None:
     """Sends command to DoHome device"""
     if data is None:
         data = {}
     command = _format_command(sid, cmd, data)
     _LOGGER.debug('command to %s :%s', address, command)
+    return _send_raw_request(address, command)
+
+def _send_raw_request(address: str, req: str) -> dict | None:
     try:
-        _transport.sendto(command.encode(), (address, API_PORT))
+        _transport.sendto(req.encode(), (address, API_PORT))
         response, _ = _transport.recvfrom(1024)
     except error:
         _LOGGER.debug('error on %s', address)
