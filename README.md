@@ -1,4 +1,6 @@
-# DoHome RGB [![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml)
+# DoHome RGB Home Assistant intergration
+
+[![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml)
 
 DoHome lights Home Assistant integration. Supports DoHome RGB bulb and strip.
 ## Supports
@@ -7,6 +9,10 @@ DoHome lights Home Assistant integration. Supports DoHome RGB bulb and strip.
 * White temperature
 * State update
 * Re-establishing a connection after disconnection
+
+## Installation
+
+Copy `dohome_rgb` folder from latest release to `/config/custom_components` folder.
 
 ## Configuration
 
