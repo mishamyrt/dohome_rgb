@@ -12,6 +12,18 @@ DoHome lights Home Assistant integration. Supports DoHome RGB bulb and strip.
 
 ## Installation
 
+### HACS
+
+Add this repo as HACS [custom repository](https://hacs.xyz/docs/faq/custom_repositories).
+
+```
+https://github.com/mishamyrt/dohome-rgb
+```
+
+Then find the integration in the list and press "Download".
+
+### Manual
+
 Copy `dohome_rgb` folder from latest release to `/config/custom_components` folder.
 
 ## Configuration
