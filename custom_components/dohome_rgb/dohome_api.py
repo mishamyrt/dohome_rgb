@@ -19,7 +19,7 @@ _transport.settimeout(0.5)
 def _format_command(sid: str, cmd: int, data: dict) -> str:
     """Formats DoHome command string"""
     data["cmd"] = cmd
-    return '&'.join([
+    return "&".join([
         "cmd=ctrl",
         "devices={[" + sid + "]}"
         "op=" + dumps(data)
@@ -31,7 +31,7 @@ def _parse_entity(resp: str) -> dict:
 
 
 def _parse_entities(resp: str) -> tuple[str, str]:
-    return map(_parse_entity, resp.split('&'))
+    return map(_parse_entity, resp.split("&"))
 
 
 def _parse_response(resp: bytes) -> dict:
@@ -47,11 +47,11 @@ def _send_command(address: str, sid: str, cmd: int, data=None) -> dict | None:
     if data is None:
         data = {}
     command = _format_command(sid, cmd, data)
-    _LOGGER.debug('command to %s :%s', address, command)
+    _LOGGER.debug("command to %s :%s", address, command)
     result = _send_raw_request(address, command)
     if result is None:
         return None
-    return loads(_parse_response(result)['op'])
+    return loads(_parse_response(result)["op"])
 
 
 def _send_raw_request(address: str, req: str) -> dict | None:
