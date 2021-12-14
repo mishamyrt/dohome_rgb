@@ -43,6 +43,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENTITIES, default={}): {cv.string: DEVICE_SCHEMA},
 })
 
+
 # pylint: disable=unused-argument
 def setup_platform(
     hass: HomeAssistant,
@@ -57,6 +58,7 @@ def setup_platform(
         devices.append(DoHomeLight(device))
     if len(devices) > 0:
         add_devices(devices)
+
 
 class DoHomeLight(LightEntity):
     """Entity of the DoHome light device."""
@@ -114,7 +116,7 @@ class DoHomeLight(LightEntity):
     @property
     def supported_color_modes(self):
         """Flag supported color modes."""
-        return { COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP }
+        return {COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP}
 
     @property
     def min_mireds(self):
@@ -141,7 +143,9 @@ class DoHomeLight(LightEntity):
             self._color_mode = COLOR_MODE_COLOR_TEMP
 
         brightness = self._brightness / 255
-        apply_brigthness = lambda x: tuple(map(lambda i: i * brightness, x))
+
+        def apply_brigthness(values: list[int]):
+            return tuple(map(lambda i: i * brightness, values))
 
         if self._color_mode is COLOR_MODE_HS:
             color = list(self._rgb).copy()
@@ -192,6 +196,7 @@ class DoHomeLight(LightEntity):
                 return
             self._rgb = tuple(map(_dohome_to_uint8, (state['r'], state['g'], state['b'])))
             self._brightness = 255
+
     def _send_command(self, cmd, data=None):
         """Send command to the device."""
         result = _send_command(
@@ -200,5 +205,5 @@ class DoHomeLight(LightEntity):
             cmd,
             data
         )
-        self._available = not result is None
+        self._available = result is not None
         return result

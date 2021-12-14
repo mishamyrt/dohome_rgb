@@ -11,6 +11,7 @@ API_PORT = 6091
 _transport = socket(AF_INET, SOCK_DGRAM)
 _transport.settimeout(0.5)
 
+
 def _format_command(sid: str, cmd: int, data: dict) -> str:
     """Formats DoHome command string"""
     data['cmd'] = cmd
@@ -20,10 +21,12 @@ def _format_command(sid: str, cmd: int, data: dict) -> str:
         'op=' + dumps(data)
     ])
 
+
 def _parse_response(resp: str) -> dict:
     """Parses DoHome response"""
-    data = {i.split('=')[0]:i.split('=')[1] for i in resp.decode('utf-8').split('&')}
+    data = {i.split('=')[0]: i.split('=')[1] for i in resp.decode('utf-8').split('&')}
     return loads(data['op'])
+
 
 def _send_command(address: str, sid: str, cmd: int, data=None):
     """Sends command to DoHome device"""
