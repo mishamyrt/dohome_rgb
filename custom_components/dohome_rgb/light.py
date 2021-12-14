@@ -1,11 +1,15 @@
 """Support for DoHome RGB Lights"""
 from __future__ import annotations
+from typing import Any, Final
 
 import logging
 from datetime import timedelta
 import homeassistant.util.color as color_util
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
@@ -23,27 +27,40 @@ _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=6)
 
-CONF_ENTITIES = "entities"
-CONF_NAME = "name"
-CONF_SID = "sid"
-CONF_IP = "ip"
+CONF_ENTITIES: Final = "entities"
+CONF_NAME: Final = "name"
+CONF_SID: Final = "sid"
+CONF_IP: Final = "ip"
+
+DEVICE_SCHEMA: Final = vol.Schema(
+    {
+        vol.Required(CONF_SID): cv.string,
+        vol.Required(CONF_IP): cv.string
+    }
+)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_ENTITIES, default=[]): cv.ensure_list,
+    vol.Required(CONF_ENTITIES, default={}): {cv.string: DEVICE_SCHEMA},
 })
 
 # pylint: disable=unused-argument
-def setup_platform(hass, config, add_devices, discovery_info=None):
+def setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    add_devices: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> bool:
     """Initialise submitted devices."""
     devices = []
-    for device in config[CONF_ENTITIES]:
+    for name, device in config[CONF_ENTITIES].items():
+        device[CONF_NAME] = name
         devices.append(DoHomeLight(hass, device))
     if len(devices) > 0:
         add_devices(devices)
 
 class DoHomeLight(LightEntity):
     """Entity of the DoHome light device."""
-    def __init__(self, hass, device):
+    def __init__(self, hass, device: ConfigType):
         self._device = device
         self._name = device[CONF_NAME]
         self._state = False
@@ -109,7 +126,7 @@ class DoHomeLight(LightEntity):
         """Return the warmest color_temp that this light supports."""
         return 255
 
-    def turn_on(self, **kwargs):
+    def turn_on(self, **kwargs: Any):
         """Turn the light on."""
         color = (0, 0, 0)
         white = (0, 0)
@@ -136,12 +153,12 @@ class DoHomeLight(LightEntity):
         self._set_state(color, white)
         self._state = True
 
-    def turn_off(self, **kwargs):
+    def turn_off(self, **kwargs: Any):
         """Turn the light off."""
         self._set_state([0, 0, 0], [0, 0])
         self._state = False
 
-    def _set_state(self, rgb, white):
+    def _set_state(self, rgb: tuple[float, float, float], white: tuple[float, float]):
         """Set state to the device."""
         data = {
             'r': int(rgb[0]),
@@ -153,7 +170,7 @@ class DoHomeLight(LightEntity):
         _LOGGER.info("update %s: %s", self._device[CONF_IP], data)
         self._send_command(6, data)
 
-    def update(self, is_first=False):
+    def update(self, is_first: bool = False):
         """Load state from the device."""
         state = self._send_command(25)
         _LOGGER.info("got state: %s", state)
