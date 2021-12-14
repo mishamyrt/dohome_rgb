@@ -51,12 +51,12 @@ def setup_platform(
 class DoHomeLight(LightEntity):
     """Entity of the DoHome light device."""
 
-    _sid = None
-    _state = False
-    _available = False
-    _rgb = (255, 255, 255)
-    _brightness = 255
-    _color_temp = 255
+    _sid: str | None = None
+    _state: bool = False
+    _available: bool = False
+    _rgb: tuple[int, int, int] = (255, 255, 255)
+    _brightness: int = 255
+    _color_temp: int = 255
     _color_mode = COLOR_MODE_HS
 
     def __init__(self, name: str, address: str):
