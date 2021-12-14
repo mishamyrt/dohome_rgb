@@ -1,5 +1,5 @@
 deploy:
-	ssh hass 'rm -rf config/custom_components/dohome_rgb'
+	ssh hass "rm -rf config/custom_components/dohome_rgb"
 	scp -r custom_components/dohome_rgb hass:config/custom_components/dohome_rgb
 restart:
 	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
