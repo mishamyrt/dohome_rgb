@@ -171,16 +171,10 @@ class DoHomeLight(LightEntity):
         else:
             self._state = True
             self._color_mode = COLOR_MODE_HS
-            self._rgb = list(map(_dohome_to_uint8, [state['r'], state['g'], state['b']]))
             if not is_first:
                 return
-            _, _, brightness = color_util.color_RGB_to_xy_brightness(
-                state['r'],
-                state['g'],
-                state['b']
-            )
-            self._brightness = int(brightness)
-
+            self._rgb = tuple(map(_dohome_to_uint8, (state['r'], state['g'], state['b'])))
+            self._brightness = 255
     def _send_command(self, cmd, data=None):
         """Send command to the device."""
         result = _send_command(
