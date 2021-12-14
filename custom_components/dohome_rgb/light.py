@@ -138,13 +138,15 @@ class DoHomeLight(LightEntity):
             return tuple(map(lambda i: i * brightness, values))
 
         if self._color_mode is COLOR_MODE_HS:
-            color = list(self._rgb).copy()
-            color = apply_brigthness(map(_uint8_to_dohome, color))
+            color = map(_uint8_to_dohome, list(self._rgb))
         elif self._color_mode is COLOR_MODE_COLOR_TEMP:
-            warm = 5000 * self._color_temp / 255
-            white = apply_brigthness([5000 - warm, warm])
+            warm = _uint8_to_dohome(self._color_temp)
+            white = [5000 - warm, warm]
 
-        self._set_state(color, white)
+        self._set_state(
+            apply_brigthness(color),
+            apply_brigthness(white)
+        )
         self._state = True
 
     def turn_off(self, **kwargs: Any):
@@ -155,11 +157,11 @@ class DoHomeLight(LightEntity):
     def _set_state(self, rgb: tuple[float, float, float], white: tuple[float, float]):
         """Set state to the device."""
         data = {
-            'r': int(rgb[0]),
-            'g': int(rgb[1]),
-            'b': int(rgb[2]),
-            'w': int(white[0]),
-            'm': int(white[1])
+            "r": int(rgb[0]),
+            "g": int(rgb[1]),
+            "b": int(rgb[2]),
+            "w": int(white[0]),
+            "m": int(white[1])
         }
         _LOGGER.debug("update %s: %s", self._address, data)
         self._send_command(6, data)
@@ -177,21 +179,21 @@ class DoHomeLight(LightEntity):
         _LOGGER.debug("got state: %s", state)
         if state is None:
             return
-        if state['r'] + state['g'] + state['b'] == 0:
-            if state['w'] + state['m'] == 0:
+        if state["r"] + state["g"] + state["b"] == 0:
+            if state["w"] + state["m"] == 0:
                 self._state = False
             else:
-                brighness_percent = _dohome_percent(state['m'] + state['w'])
+                brighness_percent = _dohome_percent(state["m"] + state["w"])
                 self._state = True
                 self._color_mode = COLOR_MODE_COLOR_TEMP
                 self._brightness = 255 * brighness_percent
-                self._color_temp = _dohome_to_uint8(state['m'] / brighness_percent)
+                self._color_temp = _dohome_to_uint8(state["m"] / brighness_percent)
         else:
             self._state = True
             self._color_mode = COLOR_MODE_HS
             if not is_first:
                 return
-            self._rgb = tuple(map(_dohome_to_uint8, (state['r'], state['g'], state['b'])))
+            self._rgb = tuple(map(_dohome_to_uint8, (state["r"], state["g"], state["b"])))
             self._brightness = 255
 
     def _send_command(self, cmd: str, data: Any = None) -> dict | None:
