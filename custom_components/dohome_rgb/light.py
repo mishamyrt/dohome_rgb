@@ -54,13 +54,13 @@ def setup_platform(
     devices = []
     for name, device in config[CONF_ENTITIES].items():
         device[CONF_NAME] = name
-        devices.append(DoHomeLight(hass, device))
+        devices.append(DoHomeLight(device))
     if len(devices) > 0:
         add_devices(devices)
 
 class DoHomeLight(LightEntity):
     """Entity of the DoHome light device."""
-    def __init__(self, hass, device: ConfigType):
+    def __init__(self, device: ConfigType):
         self._device = device
         self._name = device[CONF_NAME]
         self._state = False
