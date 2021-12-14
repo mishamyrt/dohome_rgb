@@ -9,4 +9,4 @@ configure:
 clean:
 	rm -rf venv
 lint:
-	. venv/bin/activate; yamllint ./config
+	. venv/bin/activate; pylama custom_components/
