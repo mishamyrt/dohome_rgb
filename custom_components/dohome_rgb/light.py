@@ -64,17 +64,17 @@ class DoHomeLight(LightEntity):
         self._address: Final = address
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the device."""
         return self._name
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return the unique id of the device."""
         return self._name
 
     @property
-    def brightness(self):
+    def brightness(self) -> int:
         """Return the brightness of the device."""
         return self._brightness
 
@@ -84,41 +84,41 @@ class DoHomeLight(LightEntity):
         return self._color_mode
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return status of the device."""
         return self._available
 
     @property
-    def hs_color(self):
+    def hs_color(self) -> tuple[int, int, int]:
         """Return the color of the device."""
         return color_util.color_RGB_to_hs(*self._rgb)
 
     @property
-    def is_on(self):
+    def is_on(self) -> bool:
         """Return true if light is on."""
         return self._state
 
     @property
-    def color_temp(self):
+    def color_temp(self) -> int:
         """Return the CT color value in mireds."""
         return self._color_temp
 
     @property
-    def supported_color_modes(self):
+    def supported_color_modes(self) -> int:
         """Flag supported color modes."""
         return {COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP}
 
     @property
-    def min_mireds(self):
+    def min_mireds(self) -> int:
         """Return the coldest color_temp that this light supports."""
         return 0
 
     @property
-    def max_mireds(self):
+    def max_mireds(self) -> int:
         """Return the warmest color_temp that this light supports."""
         return 255
 
-    def turn_on(self, **kwargs: Any):
+    def turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
         color = (0, 0, 0)
         white = (0, 0)
@@ -149,12 +149,16 @@ class DoHomeLight(LightEntity):
         )
         self._state = True
 
-    def turn_off(self, **kwargs: Any):
+    def turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
         self._set_state((0, 0, 0), (0, 0))
         self._state = False
 
-    def _set_state(self, rgb: tuple[float, float, float], white: tuple[float, float]):
+    def _set_state(
+        self,
+        rgb: tuple[float, float, float],
+        white: tuple[float, float]
+    ) -> None:
         """Set state to the device."""
         data = {
             "r": int(rgb[0]),
@@ -166,7 +170,7 @@ class DoHomeLight(LightEntity):
         _LOGGER.debug("update %s: %s", self._address, data)
         self._send_command(6, data)
 
-    def update(self, is_first: bool = False):
+    def update(self, is_first: bool = False) -> None:
         """Load state from the device."""
         if self._sid is None:
             info = _get_device_info(self._address)
