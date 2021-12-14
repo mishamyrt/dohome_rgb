@@ -1,6 +1,6 @@
 """Provides possibilities for sending commands to DoHome devices"""
 # pylint: disable=no-name-in-module
-from socket import AF_INET, SOCK_DGRAM, socket
+from socket import AF_INET, SOCK_DGRAM, socket, error
 from json import dumps, loads
 from logging import getLogger
 
@@ -37,8 +37,7 @@ def _send_command(address: str, sid: str, cmd: int, data=None):
     try:
         _transport.sendto(command.encode(), (address, API_PORT))
         response, _ = _transport.recvfrom(1024)
-    # pylint: disable=bare-except
-    except:
+    except error:
         _LOGGER.debug('error on %s', address)
         return None
     if response is None:
