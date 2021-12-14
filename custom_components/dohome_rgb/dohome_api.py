@@ -30,15 +30,15 @@ def _send_command(address: str, sid: str, cmd: int, data=None):
     if data is None:
         data = {}
     command = _format_command(sid, cmd, data)
-    _LOGGER.debug('command :%s', command)
+    _LOGGER.debug('command to %s :%s', address, command)
     try:
         _transport.sendto(command.encode(), (address, API_PORT))
-        data, _ = _transport.recvfrom(1024)
+        response, _ = _transport.recvfrom(1024)
     # pylint: disable=bare-except
     except:
-        _LOGGER.debug('Request error: %s', address)
+        _LOGGER.debug('error on %s', address)
         return None
-    if data is None:
+    if response is None:
         return None
-    _LOGGER.debug('result :%s', data.decode('utf-8'))
-    return _parse_response(data)
+    _LOGGER.debug('result from %s: %s', address, response.decode('utf-8'))
+    return _parse_response(response)
