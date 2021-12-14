@@ -1,4 +1,4 @@
-# DoHome RGB
+# DoHome RGB [![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml)
 
 DoHome lights Home Assistant integration. Supports DoHome RGB bulb and strip.
 ## Supports
