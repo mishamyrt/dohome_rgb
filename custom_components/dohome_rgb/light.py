@@ -5,6 +5,7 @@ import logging
 from datetime import timedelta
 import homeassistant.util.color as color_util
 import homeassistant.helpers.config_validation as cv
+import homeassistant.components.light as light
 import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
@@ -17,7 +18,6 @@ from homeassistant.components.light import (
     COLOR_MODE_HS,
     LightEntity,
 )
-import homeassistant.components.light
 
 from .convert import _dohome_percent, _dohome_to_uint8, _uint8_to_dohome
 from .dohome_api import _send_command, _get_device_info
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 CONF_ENTITIES: Final = "entities"
 
 SCAN_INTERVAL = timedelta(seconds=6)
-PLATFORM_SCHEMA: Final = homeassistant.components.light.PLATFORM_SCHEMA.extend({
+PLATFORM_SCHEMA: Final = light.PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENTITIES, default={}): {cv.string: cv.string},
 })
 
