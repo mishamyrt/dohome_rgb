@@ -152,11 +152,13 @@ class DoHomeLight(LightEntity):
             'w': int(white[0]),
             'm': int(white[1])
         }
+        _LOGGER.info("update %s: %s", self._device[CONF_IP], data)
         self._send_command(6, data)
 
     def update(self, is_first=False):
         """Load state from the device."""
         state = self._send_command(25)
+        _LOGGER.info("got state: %s", state)
         if state is None:
             return
         if state['r'] + state['g'] + state['b'] == 0:
