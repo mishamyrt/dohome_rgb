@@ -16,7 +16,7 @@ from homeassistant.components.light import (
     LightEntity,
 )
 
-from .convert import _dohome_percent, _dohome_to_uint8
+from .convert import _dohome_percent, _dohome_to_uint8, _uint8_to_dohome
 from .dohome_api import _send_command
 
 _LOGGER = logging.getLogger(__name__)
@@ -133,13 +133,13 @@ class DoHomeLight(LightEntity):
             warm = 5000 * self._color_temp / 255
             white = apply_brigthness([5000 - warm, warm])
 
-        self._state = True
         self._set_state(color, white)
+        self._state = True
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
-        self._state = False
         self._set_state([0, 0, 0], [0, 0])
+        self._state = False
 
     def _set_state(self, rgb, white):
         """Set state to the device."""
