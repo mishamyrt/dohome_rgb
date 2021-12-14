@@ -123,20 +123,18 @@ class DoHomeLight(LightEntity):
             self._color_temp = kwargs[ATTR_COLOR_TEMP]
             self._color_mode = COLOR_MODE_COLOR_TEMP
 
-        brigthness_percent = self._brightness / 255
+        brightness = self._brightness / 255
+        apply_brigthness = lambda x: tuple(map(lambda i: i * brightness, x))
 
         if self._color_mode is COLOR_MODE_HS:
-            rgb = list(
-                map(lambda x: 5000 * (x / 255) * brigthness_percent, self._rgb))
+            color = list(self._rgb).copy()
+            color = apply_brigthness(map(_uint8_to_dohome, color))
         elif self._color_mode is COLOR_MODE_COLOR_TEMP:
             warm = 5000 * self._color_temp / 255
-            cold = 5000 - warm
-            warm = warm * brigthness_percent
-            cold = cold * brigthness_percent
-            white = [cold, warm]
+            white = apply_brigthness([5000 - warm, warm])
 
         self._state = True
-        self._set_state(rgb, white)
+        self._set_state(color, white)
 
     def turn_off(self, **kwargs):
         """Turn the light off."""
