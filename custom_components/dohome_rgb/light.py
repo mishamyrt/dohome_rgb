@@ -111,8 +111,8 @@ class DoHomeLight(LightEntity):
 
     def turn_on(self, **kwargs):
         """Turn the light on."""
-        rgb = [0, 0, 0]
-        white = [0, 0]
+        color = (0, 0, 0)
+        white = (0, 0)
 
         if ATTR_BRIGHTNESS in kwargs:
             self._brightness = kwargs[ATTR_BRIGHTNESS]
