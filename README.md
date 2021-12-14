@@ -16,18 +16,10 @@ Add to your configuration file.
 light:
   - platform: dohome_rgb
     entities:
-      kitchen_bulb:
-        sid: '797a'
-        ip: '192.168.31.58'
-      desk_strip:
-        sid: '79c7'
-        ip: '192.168.31.59'
-      desk_lamp:
-        sid: '7a1b'
-        ip: '192.168.31.60'
+      kitchen_bulb: '192.168.31.58'
+      desk_strip: '192.168.31.59'
+      desk_lamp: '192.168.31.60'
 ```
-
-`sid` is the unique id of your device. It can be recognised by looking at the last 4 characters of the mac–address.
 
 ## Credits
 

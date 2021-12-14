@@ -1,7 +1,6 @@
 """Support for DoHome RGB Lights"""
 from __future__ import annotations
 from typing import Any, Final
-
 import logging
 from datetime import timedelta
 import homeassistant.util.color as color_util
@@ -21,26 +20,16 @@ from homeassistant.components.light import (
 )
 
 from .convert import _dohome_percent, _dohome_to_uint8, _uint8_to_dohome
-from .dohome_api import _send_command
+from .dohome_api import _send_command, _get_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 SCAN_INTERVAL = timedelta(seconds=6)
 
 CONF_ENTITIES: Final = "entities"
-CONF_NAME: Final = "name"
-CONF_SID: Final = "sid"
-CONF_IP: Final = "ip"
 
-DEVICE_SCHEMA: Final = vol.Schema(
-    {
-        vol.Required(CONF_SID): cv.string,
-        vol.Required(CONF_IP): cv.string
-    }
-)
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_ENTITIES, default={}): {cv.string: DEVICE_SCHEMA},
+PLATFORM_SCHEMA: Final = PLATFORM_SCHEMA.extend({
+    vol.Required(CONF_ENTITIES, default={}): {cv.string: cv.string},
 })
 
 
@@ -53,28 +42,27 @@ def setup_platform(
 ) -> bool:
     """Initialise submitted devices."""
     devices = []
-    for name, device in config[CONF_ENTITIES].items():
+    for name, address in config[CONF_ENTITIES].items():
         _LOGGER.info("Added device %s", name)
-        device[CONF_NAME] = name
-        devices.append(DoHomeLight(device))
+        devices.append(DoHomeLight(name, address))
     if len(devices) > 0:
         add_devices(devices)
 
 
 class DoHomeLight(LightEntity):
+    """Entity of the DoHome light device."""
+
     _sid = None
     _state = False
-    _available = True
+    _available = False
     _rgb = (255, 255, 255)
     _brightness = 255
     _color_temp = 255
     _color_mode = COLOR_MODE_HS
 
-    """Entity of the DoHome light device."""
-    def __init__(self, device: ConfigType):
-        self._device = device
-        self._name = device[CONF_NAME]
-        self.update(True)
+    def __init__(self, name: str, address: str):
+        self._name: Final = name
+        self._address: Final = address
 
     @property
     def name(self):
@@ -174,11 +162,18 @@ class DoHomeLight(LightEntity):
             'w': int(white[0]),
             'm': int(white[1])
         }
-        _LOGGER.debug("update %s: %s", self._device[CONF_IP], data)
+        _LOGGER.debug("update %s: %s", self._address, data)
         self._send_command(6, data)
 
     def update(self, is_first: bool = False):
         """Load state from the device."""
+        if self._sid is None:
+            info = _get_device_info(self._address)
+            if info is None:
+                return
+            self._sid = info["device_name"][-4:]
+            return self.update(True)
+
         state = self._send_command(25)
         _LOGGER.debug("got state: %s", state)
         if state is None:
@@ -203,8 +198,8 @@ class DoHomeLight(LightEntity):
     def _send_command(self, cmd, data=None):
         """Send command to the device."""
         result = _send_command(
-            self._device[CONF_IP],
-            self._device[CONF_SID],
+            self._address,
+            self._sid,
             cmd,
             data
         )
