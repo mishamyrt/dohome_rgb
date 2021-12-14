@@ -25,11 +25,14 @@ def _format_command(sid: str, cmd: int, data: dict) -> str:
         "op=" + dumps(data)
     ])
 
+
 def _parse_entity(resp: str) -> dict:
     return resp.split("=")
 
+
 def _parse_entities(resp: str) -> tuple[str, str]:
     return map(_parse_entity, resp.split('&'))
+
 
 def _parse_response(resp: bytes) -> dict:
     """Parses DoHome response"""
