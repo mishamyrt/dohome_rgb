@@ -1,6 +1,6 @@
 # DoHome RGB Home Assistant intergration
 
-[![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/lint.yaml)
+[![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/qa.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/qa.yaml)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
 
