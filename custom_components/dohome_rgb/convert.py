@@ -1,9 +1,9 @@
 """Converters for DoHome number format."""
 from __future__ import annotations
 
-def _dohome_percent(value: int) -> int:
+def _dohome_percent(value: int) -> float:
     """Convert dohome value (0-5000) to percent (0-1)."""
-    return int(value / 5000)
+    return value / 5000
 
 def _dohome_to_uint8(value: int) -> int:
     """Convert dohome value (0-5000) to uint8 (0-255)."""
