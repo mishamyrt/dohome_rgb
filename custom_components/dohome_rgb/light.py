@@ -62,16 +62,18 @@ def setup_platform(
 
 
 class DoHomeLight(LightEntity):
+    _sid = None
+    _state = False
+    _available = True
+    _rgb = (255, 255, 255)
+    _brightness = 255
+    _color_temp = 255
+    _color_mode = COLOR_MODE_HS
+
     """Entity of the DoHome light device."""
     def __init__(self, device: ConfigType):
         self._device = device
         self._name = device[CONF_NAME]
-        self._state = False
-        self._rgb = (255, 255, 255)
-        self._brightness = 255
-        self._color_temp = 128
-        self._color_mode = COLOR_MODE_HS
-        self._available = True
         self.update(True)
 
     @property
