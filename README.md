@@ -34,9 +34,9 @@ Add to your configuration file.
 light:
   - platform: dohome_rgb
     entities:
-      kitchen_bulb: '192.168.31.58'
-      desk_strip: '192.168.31.59'
-      desk_lamp: '192.168.31.60'
+      kitchen_bulb: 192.168.31.58
+      desk_strip: 192.168.31.59
+      desk_lamp: 192.168.31.60
 ```
 
 ## Credits
