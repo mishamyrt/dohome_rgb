@@ -194,7 +194,7 @@ class DoHomeLight(LightEntity):
             self._rgb = tuple(map(_dohome_to_uint8, (state['r'], state['g'], state['b'])))
             self._brightness = 255
 
-    def _send_command(self, cmd, data=None):
+    def _send_command(self, cmd: str, data: Any = None) -> dict | None:
         """Send command to the device."""
         result = _send_command(
             self._address,
