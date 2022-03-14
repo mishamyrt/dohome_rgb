@@ -69,4 +69,7 @@ def _send_raw_request(address: str, req: str) -> dict | None:
 
 
 def _get_device_info(address: str) -> dict | None:
-    return _parse_response(_send_raw_request(address, _COMMAND_PING))
+    response = _send_raw_request(address, _COMMAND_PING)
+    if response is None:
+        return None
+    return _parse_response(response)
