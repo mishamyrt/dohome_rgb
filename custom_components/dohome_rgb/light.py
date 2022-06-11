@@ -26,7 +26,6 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_ENTITIES: Final = "entities"
 
-SCAN_INTERVAL = timedelta(seconds=6)
 PLATFORM_SCHEMA: Final = light.PLATFORM_SCHEMA.extend({
     vol.Required(CONF_ENTITIES, default={}): {cv.string: cv.string},
 })
@@ -62,6 +61,11 @@ class DoHomeLight(LightEntity):
     def __init__(self, name: str, address: str):
         self._name: Final = name
         self._address: Final = address
+        info = _get_device_info(self._address)
+        if info is None:
+            return
+        self._sid = info["device_name"][-4:]
+        return self.update(True)
 
     @property
     def name(self) -> str:
@@ -172,13 +176,6 @@ class DoHomeLight(LightEntity):
 
     def update(self, is_first: bool = False) -> None:
         """Load state from the device."""
-        if self._sid is None:
-            info = _get_device_info(self._address)
-            if info is None:
-                return
-            self._sid = info["device_name"][-4:]
-            return self.update(True)
-
         state = self._send_command(25)
         _LOGGER.debug("got state: %s", state)
         if state is None:
