@@ -1,107 +1,74 @@
 """Support for DoHome RGB Lights"""
-from __future__ import annotations
-from typing import Any, Final
 import logging
+import socket
+import json
 from datetime import timedelta
+from homeassistant.helpers.event import track_time_interval
 import homeassistant.util.color as color_util
-import homeassistant.helpers.config_validation as cv
-import homeassistant.components.light as light
-import voluptuous as vol
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
+    ATTR_EFFECT,
     ATTR_HS_COLOR,
-    COLOR_MODE_COLOR_TEMP,
+    PLATFORM_SCHEMA,
+    SUPPORT_BRIGHTNESS,
+    SUPPORT_COLOR,
     COLOR_MODE_HS,
+    COLOR_MODE_COLOR_TEMP,
     LightEntity,
 )
 
-from .convert import _dohome_percent, _dohome_to_uint8, _uint8_to_dohome
-from .dohome_api import _send_command, _get_device_info
+from . import (DOHOME_GATEWAY, DoHomeDevice)
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_ENTITIES: Final = "entities"
+def setup_platform(hass, config, add_devices, discovery_info=None):
+    light_devices = []
+    devices = DOHOME_GATEWAY.devices
+    for (device_type, device_info) in devices.items():
+        for device in device_info:
+            _LOGGER.info(device)
+            if(device['type'] == '_STRIPE' or device['type'] == '_DT-WYRGB'):
+                light_devices.append(DoHomeLight(hass, device))
 
-SCAN_INTERVAL = timedelta(seconds=6)
-PLATFORM_SCHEMA: Final = light.PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_ENTITIES, default={}): {cv.string: cv.string},
-})
-
-
-# pylint: disable=unused-argument
-def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    add_devices: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
-) -> bool:
-    """Initialise submitted devices."""
-    devices = []
-    for name, address in config[CONF_ENTITIES].items():
-        _LOGGER.info("Added device %s", name)
-        devices.append(DoHomeLight(name, address))
-    if len(devices) > 0:
-        add_devices(devices)
+    if(len(light_devices) > 0):
+        add_devices(light_devices)
 
 
-class DoHomeLight(LightEntity):
-    """Entity of the DoHome light device."""
+class DoHomeLight(DoHomeDevice, LightEntity):
+    _attr_min_mireds = 166
+    _attr_max_mireds = 400
+    _attr_color_mode = COLOR_MODE_HS
+    _rgb = (255, 255, 255)
+    _attr_color_temp = 166
+    _state = False
+    _brightness = 100
 
-    _sid: str | None = None
-    _state: bool = False
-    _available: bool = False
-    _rgb: tuple[int, int, int] = (255, 255, 255)
-    _brightness: int = 255
-    _color_temp: int = 255
-    _color_mode = COLOR_MODE_HS
-
-    def __init__(self, name: str, address: str):
-        self._name: Final = name
-        self._address: Final = address
+    def __init__(self, hass, device):
+        self._device = device
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        DoHomeDevice.__init__(self, device['name'], device)
 
     @property
-    def name(self) -> str:
-        """Return the name of the device."""
-        return self._name
-
-    @property
-    def unique_id(self) -> str:
-        """Return the unique id of the device."""
-        return self._name
-
-    @property
-    def brightness(self) -> int:
-        """Return the brightness of the device."""
+    def brightness(self):
+        """Return the brightness of this light between 0..255."""
         return self._brightness
 
     @property
-    def color_mode(self):
-        """Return the color mode of the device."""
-        return self._color_mode
-
-    @property
-    def available(self) -> bool:
-        """Return status of the device."""
-        return self._available
-
-    @property
-    def hs_color(self) -> tuple[int, int, int]:
-        """Return the color of the device."""
+    def hs_color(self):
+        """Return the color property."""
         return color_util.color_RGB_to_hs(*self._rgb)
 
+
     @property
-    def is_on(self) -> bool:
+    def is_on(self):
         """Return true if light is on."""
         return self._state
 
     @property
-    def color_temp(self) -> int:
-        """Return the CT color value in mireds."""
-        return self._color_temp
+    def supported_features(self):
+        """Return the supported features."""
+        return SUPPORT_BRIGHTNESS | SUPPORT_COLOR
 
     @property
     def supported_color_modes(self) -> int:
@@ -109,104 +76,81 @@ class DoHomeLight(LightEntity):
         return {COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP}
 
     @property
-    def min_mireds(self) -> int:
-        """Return the coldest color_temp that this light supports."""
-        return 0
+    def unique_id(self) -> str:
+        """Return the unique id of the device."""
+        return 'dohome' + self._device['name']
 
-    @property
-    def max_mireds(self) -> int:
-        """Return the warmest color_temp that this light supports."""
-        return 255
-
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs):
         """Turn the light on."""
-        color = (0, 0, 0)
-        white = (0, 0)
+        if ATTR_HS_COLOR in kwargs:
+            self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
+            self._attr_color_mode = COLOR_MODE_HS
+        elif ATTR_COLOR_TEMP in kwargs:
+            self._attr_color_temp = kwargs[ATTR_COLOR_TEMP]
+            self._attr_color_mode = COLOR_MODE_COLOR_TEMP
 
         if ATTR_BRIGHTNESS in kwargs:
             self._brightness = kwargs[ATTR_BRIGHTNESS]
-        if ATTR_HS_COLOR in kwargs:
-            self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-            self._color_mode = COLOR_MODE_HS
-        elif ATTR_COLOR_TEMP in kwargs:
-            self._color_temp = kwargs[ATTR_COLOR_TEMP]
-            self._color_mode = COLOR_MODE_COLOR_TEMP
 
-        brightness = self._brightness / 255
-
-        def apply_brigthness(values: list[int]):
-            return tuple(map(lambda i: i * brightness, values))
-
-        if self._color_mode is COLOR_MODE_HS:
-            color = map(_uint8_to_dohome, list(self._rgb))
-        elif self._color_mode is COLOR_MODE_COLOR_TEMP:
-            warm = _uint8_to_dohome(self._color_temp)
-            white = [5000 - warm, warm]
-
-        self._set_state(
-            apply_brigthness(color),
-            apply_brigthness(white)
-        )
         self._state = True
-
-    def turn_off(self, **kwargs: Any) -> None:
-        """Turn the light off."""
-        self._set_state((0, 0, 0), (0, 0))
-        self._state = False
-
-    def _set_state(
-        self,
-        rgb: tuple[float, float, float],
-        white: tuple[float, float]
-    ) -> None:
-        """Set state to the device."""
-        data = {
-            "r": int(rgb[0]),
-            "g": int(rgb[1]),
-            "b": int(rgb[2]),
-            "w": int(white[0]),
-            "m": int(white[1])
-        }
-        _LOGGER.debug("update %s: %s", self._address, data)
-        self._send_command(6, data)
-
-    def update(self, is_first: bool = False) -> None:
-        """Load state from the device."""
-        if self._sid is None:
-            info = _get_device_info(self._address)
-            if info is None:
-                return
-            self._sid = info["device_name"][-4:]
-            return self.update(True)
-
-        state = self._send_command(25)
-        _LOGGER.debug("got state: %s", state)
-        if state is None:
-            return
-        if state["r"] + state["g"] + state["b"] == 0:
-            if state["w"] + state["m"] == 0:
-                self._state = False
-            else:
-                brighness_percent = _dohome_percent(state["m"] + state["w"])
-                self._state = True
-                self._color_mode = COLOR_MODE_COLOR_TEMP
-                self._brightness = 255 * brighness_percent
-                self._color_temp = _dohome_to_uint8(state["m"] / brighness_percent)
+        data = {}
+        brightness_percent = self._brightness / 255
+        if self._attr_color_mode == COLOR_MODE_COLOR_TEMP:
+            warm = int((self._attr_color_temp / self._attr_max_mireds) * 5000)
+            data = {
+                "cmd":6,
+                "r":0,
+                "g":0,
+                "b":0,
+                "w": (5000 - warm) * brightness_percent,
+                "m": warm * brightness_percent
+            }
         else:
-            self._state = True
-            self._color_mode = COLOR_MODE_HS
-            if not is_first:
-                return
-            self._rgb = tuple(map(_dohome_to_uint8, (state["r"], state["g"], state["b"])))
-            self._brightness = 255
+            data = {
+                "cmd":6,
+                "r":int(5000 * self._rgb[0] / 255)*brightness_percent,
+                "g":int(5000 * self._rgb[1] / 255)*brightness_percent,
+                "b":int(5000 * self._rgb[2] / 255)*brightness_percent,
+                "w":0,
+                "m":0
+            }
+        op = json.dumps(data)
+        _LOGGER.warning("command :%s", op)
+        self._send_cmd(self._device,'cmd=ctrl&devices={[' + self._device["sid"] + ']}&op=' + op + '}', 6)
 
-    def _send_command(self, cmd: str, data: Any = None) -> dict | None:
-        """Send command to the device."""
-        result = _send_command(
-            self._address,
-            self._sid,
-            cmd,
-            data
-        )
-        self._available = result is not None
-        return result
+    def turn_off(self, **kwargs):
+        """Turn the light off."""
+        self._state = False
+        data = {
+                "cmd":6,
+                "r":0,
+                "g":0,
+                "b":0,
+                "w":0,
+                "m":0}
+        op = json.dumps(data)
+        self._send_cmd(self._device,'cmd=ctrl&devices={[' + self._device["sid"] + ']}&op=' + op + '}', 6)
+
+    def _send_cmd(self, device, cmd, rtn_cmd):
+
+        try:
+            self._socket.settimeout(0.5)
+            self._socket.sendto(cmd.encode(), (device["sta_ip"], 6091))
+            data, addr = self._socket.recvfrom(1024)
+        except socket.timeout:
+            return None
+
+        if data is None:
+            return None
+
+        dic = {i.split("=")[0]:i.split("=")[1] for i in data.decode("utf-8").split("&")}
+        resp = []
+        if(dic["dev"][8:12] == device["sid"]):
+            resp = json.loads(dic["op"])
+            if resp['cmd'] != rtn_cmd:
+                _LOGGER.debug("Non matching response. Expecting %s, but got %s", rtn_cmd, resp['cmd'])
+                return None
+            return resp
+        else:
+            _LOGGER.debug("Non matching response. device %s, but got %s", device["sid"], dic["dev"][8:12])
+            return None
