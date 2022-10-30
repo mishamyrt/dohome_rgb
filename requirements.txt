@@ -1,2 +1,5 @@
 pylama==8.3.3
 pylint==2.12.2
+dohome-api==0.0.3
+voluptuous==0.13.1
+homeassistant==2022.10.5
