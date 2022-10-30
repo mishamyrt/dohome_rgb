@@ -75,7 +75,7 @@ class DoHomeLightEntity(LightEntity):
     @property
     def unique_id(self) -> str:
         """Return the unique id of the device."""
-        return 'dohome' + self._sid
+        return f"dohome_{self._sid}"
 
     async def _when_connected(self) -> bool:
         if self._device is None or not self._device.connected:
