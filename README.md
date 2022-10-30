@@ -1,6 +1,6 @@
 # DoHome RGB Home Assistant intergration
 
-[![Quality assurance](https://github.com/mishamyrt/dohome-rgb/actions/workflows/qa.yaml/badge.svg)](https://github.com/mishamyrt/dohome-rgb/actions/workflows/qa.yaml)
+[![Quality assurance](https://github.com/mishamyrt/dohome_rgb/actions/workflows/qa.yaml/badge.svg)](https://github.com/mishamyrt/dohome_rgb/actions/workflows/qa.yaml)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 
 
@@ -19,7 +19,7 @@ DoHome lights Home Assistant integration. Supports DoHome RGB bulb and strip.
 Add this repo as HACS [custom repository](https://hacs.xyz/docs/faq/custom_repositories).
 
 ```
-https://github.com/mishamyrt/dohome-rgb
+https://github.com/mishamyrt/dohome_rgb
 ```
 
 Then find the integration in the list and press "Download".
@@ -35,10 +35,7 @@ Add to your configuration file.
 ```yaml
 light:
   - platform: dohome_rgb
-    entities:
-      kitchen_bulb: 192.168.31.58
-      desk_strip: 192.168.31.59
-      desk_lamp: 192.168.31.60
+    sid: 7b5b # Last for symbols of mac
 ```
 
 ## Credits
