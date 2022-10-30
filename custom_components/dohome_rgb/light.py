@@ -93,7 +93,7 @@ class DoHomeLightEntity(LightEntity):
         if self._device is None or not self._device.connected:
             try:
                 self._device = await wait_for(self._gateway.add_light(self._sid), timeout=3.0)
-            except (aioerrors.TimeoutError, aioerrors.CancelledError):
+            except (aioerrors.TimeoutError, aioerrors.CancelledError, IOError):
                 self._attr_available = False
                 return False
         return True
