@@ -1,6 +1,8 @@
 """Support for DoHome RGB Lights"""
 import logging
 from datetime import timedelta
+from asyncio import wait_for
+import asyncio.exceptions as aioerrors
 from typing import (Callable, Optional, Final, Any)
 import homeassistant.util.color as color_util
 from homeassistant.helpers.typing import (
@@ -92,8 +94,8 @@ class DoHomeLightEntity(LightEntity):
     async def _when_connected(self) -> bool:
         if self._device is None or not self._device.connected:
             try:
-                self._device = await self._gateway.add_light(self._sid)
-            except IOError:
+                self._device = await wait_for(self._gateway.add_light(self._sid), timeout=3.0)
+            except (aioerrors.TimeoutError, aioerrors.CancelledError):
                 self._attr_available = False
                 return False
         return True
@@ -104,7 +106,12 @@ class DoHomeLightEntity(LightEntity):
         if not await self._when_connected():
             self._attr_available = False
             return
-        state = await self._device.get_state()
+        state = {}
+        try:
+            state = await wait_for(self._device.get_state(), timeout=2.0)
+        except (aioerrors.TimeoutError, aioerrors.CancelledError):
+            self._attr_available = False
+            return
         self._attr_available = True
         if not state["enabled"]:
             self._attr_is_on = False
@@ -143,4 +150,4 @@ class DoHomeLightEntity(LightEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
         if await self._when_connected():
-            await self._device.set_enabled(False)
+            await self._device.turn_off()
