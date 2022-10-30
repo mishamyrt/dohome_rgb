@@ -1,12 +1,13 @@
 """Support for DoHome"""
-import socket
-import json
 import logging
-import struct
-import platform
+from asyncio import Future
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.discovery import async_load_platform
+from homeassistant.helpers.typing import (
+    ConfigType,
+    HomeAssistantType,
+)
 from dohome_api import DoHomeGateway
 
 DOMAIN = 'dohome_rgb'
@@ -21,7 +22,7 @@ CONFIG_SCHEMA = vol.Schema({
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup(hass, config):
+async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     """Setup DoHome platform"""
     hass.data[DOMAIN] = DoHomeGateway(config[DOMAIN][CONF_GATEWAY])
     hass.async_create_task(
