@@ -10,13 +10,12 @@ from homeassistant.helpers.discovery import async_load_platform
 from dohome_api import DoHomeGateway
 
 DOMAIN = 'dohome_rgb'
-CONF_SIDS = 'sids'
+CONF_SID = 'sid'
 CONF_GATEWAY = 'gateway_ip'
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
-        vol.Optional(CONF_GATEWAY, default=None): cv.string,
-        vol.Optional(CONF_SIDS): cv.ensure_list,
+        vol.Optional(CONF_GATEWAY, default=None): cv.string
     })
 }, extra=vol.ALLOW_EXTRA)
 
@@ -29,3 +28,4 @@ async def async_setup(hass, config):
     hass.async_create_task(
         async_load_platform(hass, "light", DOMAIN, {}, config)
     )
+    return True

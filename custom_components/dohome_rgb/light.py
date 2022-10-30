@@ -8,6 +8,7 @@ from homeassistant.helpers.typing import (
     DiscoveryInfoType,
     HomeAssistantType,
 )
+import homeassistant.helpers.config_validation as cv
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP,
@@ -16,12 +17,15 @@ from homeassistant.components.light import (
     SUPPORT_COLOR,
     COLOR_MODE_HS,
     COLOR_MODE_COLOR_TEMP,
+    PLATFORM_SCHEMA,
     LightEntity,
 )
+import voluptuous as vol
+import json
 from dohome_api import DoHomeGateway, DoHomeLight
 
 from . import (
-    CONF_SIDS,
+    CONF_SID,
     DOMAIN
 )
 
@@ -29,6 +33,13 @@ from . import (
 
 SCAN_INTERVAL = timedelta(seconds=5)
 _LOGGER = logging.getLogger(__name__)
+_LOGGER.setLevel('DEBUG')
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {
+        vol.Required(CONF_SID): cv.string
+    }
+)
 
 async def async_setup_platform(
     hass: HomeAssistantType,
@@ -38,10 +49,11 @@ async def async_setup_platform(
 ) -> None:
     """Set up DoHome light platform"""
     gateway = hass.data[DOMAIN]
-    entities = []
-    for sid in config[DOMAIN][CONF_SIDS]:
-        entities.append(DoHomeLightEntity(hass, sid, gateway))
-    async_add_entities(entities)
+    _LOGGER.debug("doconfig %s", json.dumps(config))
+    if CONF_SID in config:
+        async_add_entities([
+            DoHomeLightEntity(hass, config[CONF_SID], gateway)
+        ])
 
 class DoHomeLightEntity(LightEntity):
     """DoHome light entity"""
@@ -75,7 +87,7 @@ class DoHomeLightEntity(LightEntity):
     @property
     def unique_id(self) -> str:
         """Return the unique id of the device."""
-        return f"dohome_{self._sid}"
+        return self._sid
 
     async def _when_connected(self) -> bool:
         if self._device is None or not self._device.connected:
@@ -88,10 +100,11 @@ class DoHomeLightEntity(LightEntity):
 
     async def async_update(self) -> None:
         """Reads state from the device"""
+        _LOGGER.debug("Update state %s", self._sid)
         if not await self._when_connected():
             self._attr_available = False
             return
-        state = self._device.get_state()
+        state = await self._device.get_state()
         self._attr_available = True
         if not state["enabled"]:
             self._attr_is_on = False
