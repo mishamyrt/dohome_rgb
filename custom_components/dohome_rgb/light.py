@@ -66,9 +66,9 @@ class DoHomeLightEntity(LightEntity):
     _attr_min_mireds: Final = 166
     _attr_max_mireds: Final = 400
     # State values
-    _attr_color_mode: str = COLOR_MODE_HS
-    _attr_brightness: int = 0
-    _attr_color_temp: int = 166
+    _attr_color_mode: str = COLOR_MODE_COLOR_TEMP
+    _attr_brightness: int = 200
+    _attr_color_temp: int = 320
     _attr_is_on: bool = False
     _attr_available: bool = False
     _rgb: Tuple[int, int, int] = None
