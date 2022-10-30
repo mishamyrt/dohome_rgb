@@ -20,7 +20,6 @@ CONFIG_SCHEMA = vol.Schema({
 }, extra=vol.ALLOW_EXTRA)
 
 _LOGGER = logging.getLogger(__name__)
-# _LOGGER.setLevel('DEBUG')
 
 async def async_setup(hass, config):
     """Setup DoHome platform"""

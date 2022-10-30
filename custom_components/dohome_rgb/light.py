@@ -23,7 +23,6 @@ from homeassistant.components.light import (
     LightEntity,
 )
 import voluptuous as vol
-import json
 from dohome_api import DoHomeGateway, DoHomeLight
 
 from . import (
@@ -35,7 +34,6 @@ from . import (
 
 SCAN_INTERVAL = timedelta(seconds=5)
 _LOGGER = logging.getLogger(__name__)
-_LOGGER.setLevel('DEBUG')
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -51,7 +49,6 @@ async def async_setup_platform(
 ) -> None:
     """Set up DoHome light platform"""
     gateway = hass.data[DOMAIN]
-    _LOGGER.debug("doconfig %s", json.dumps(config))
     if CONF_SID in config:
         async_add_entities([
             DoHomeLightEntity(hass, config[CONF_SID], gateway)
@@ -59,6 +56,7 @@ async def async_setup_platform(
 
 class DoHomeLightEntity(LightEntity):
     """DoHome light entity"""
+    # pylint: disable=too-many-instance-attributes
     # Constants attributes
     _attr_supported_color_modes: Final = {COLOR_MODE_HS, COLOR_MODE_COLOR_TEMP}
     _attr_supported_features: Final = SUPPORT_BRIGHTNESS | SUPPORT_COLOR
@@ -102,7 +100,7 @@ class DoHomeLightEntity(LightEntity):
 
     async def async_update(self) -> None:
         """Reads state from the device"""
-        _LOGGER.debug("Update state %s", self._sid)
+        _LOGGER.debug("Updating state of %s", self._sid)
         if not await self._when_connected():
             self._attr_available = False
             return
