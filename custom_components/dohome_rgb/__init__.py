@@ -11,20 +11,12 @@ from homeassistant.helpers.typing import (
 from dohome_api import DoHomeGateway
 
 DOMAIN = 'dohome_rgb'
-CONF_SID = 'sid'
-CONF_GATEWAY = 'gateway_ip'
-
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.Schema({
-        vol.Optional(CONF_GATEWAY, default=None): cv.string
-    })
-}, extra=vol.ALLOW_EXTRA)
+CONF_SIDS = 'sids'
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     """Setup DoHome platform"""
-    hass.data[DOMAIN] = DoHomeGateway(config[DOMAIN][CONF_GATEWAY])
     hass.async_create_task(
         async_load_platform(hass, "light", DOMAIN, {}, config)
     )

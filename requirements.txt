@@ -1,4 +1,4 @@
 pylama==8.3.3
 pylint==2.12.2
-dohome-api==0.0.3
+dohome-api==0.2.5
 homeassistant

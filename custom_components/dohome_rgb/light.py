@@ -1,14 +1,14 @@
 """Support for DoHome RGB Lights"""
 import logging
 from datetime import timedelta
-from asyncio import wait_for
 import asyncio.exceptions as aioexc
 from typing import (
     Callable,
     Optional,
     Final,
     Any,
-    Tuple
+    Tuple,
+    List
 )
 from homeassistant.helpers.typing import (
     ConfigType,
@@ -27,19 +27,16 @@ from homeassistant.components.light import (
 import homeassistant.util.color as color_util
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from dohome_api import DoHomeGateway, DoHomeLight
-from . import (
-    CONF_SID,
-    DOMAIN
-)
+from dohome_api import DoHomeLightsBroadcast, DoHomeGateway
+from . import CONF_SIDS
 
 # pylint: disable=unused-argument,too-many-instance-attributes
 
-SCAN_INTERVAL = timedelta(seconds=5)
+SCAN_INTERVAL = timedelta(seconds=10)
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_SID): cv.string
+    vol.Required(CONF_SIDS): cv.ensure_list
 })
 
 async def async_setup_platform(
@@ -49,10 +46,11 @@ async def async_setup_platform(
     discovery_info: Optional[DiscoveryInfoType] = None,
 ) -> None:
     """Set up DoHome light platform"""
-    gateway = hass.data[DOMAIN]
-    if CONF_SID in config:
+    if CONF_SIDS in config:
+        gateway = DoHomeGateway()
+        device = gateway.add_lights(config[CONF_SIDS])
         async_add_entities([
-            DoHomeLightEntity(hass, config[CONF_SID], gateway)
+            DoHomeLightEntity(hass, config[CONF_SIDS], device)
         ])
 
 class DoHomeLightEntity(LightEntity):
@@ -73,14 +71,12 @@ class DoHomeLightEntity(LightEntity):
     _attr_available: bool = False
     _rgb: Tuple[int, int, int] = None
     # Late init values
-    _gateway: DoHomeGateway = None
-    _device: DoHomeLight = None
-    _sid: str = ''
-    _host: str = None
+    _device: DoHomeLightsBroadcast
+    _sids: List[str]
 
-    def __init__(self, hass, sid: str, gateway: DoHomeGateway) -> None:
-        self._gateway = gateway
-        self._sid = sid
+    def __init__(self, hass, sids: List[str], device: DoHomeLightsBroadcast) -> None:
+        self._device = device
+        self._sids = sids
 
     @property
     def hs_color(self) -> tuple[float, float]:
@@ -90,17 +86,15 @@ class DoHomeLightEntity(LightEntity):
     @property
     def unique_id(self) -> str:
         """Return the unique id of the device."""
-        return self._sid
+        return '-'.join(self._sids)
 
     async def async_update(self) -> None:
         """Reads state from the device"""
-        _LOGGER.debug("Updating state of %s", self._sid)
         if not await self._when_connected():
             self._attr_available = False
             return
-        state = {}
         try:
-            state = await wait_for(self._device.get_state(), timeout=2.0)
+            state = await self._device.get_state()
         except (aioexc.TimeoutError, aioexc.CancelledError):
             self._attr_available = False
             return
@@ -136,7 +130,7 @@ class DoHomeLightEntity(LightEntity):
                 self._attr_brightness
             )
         else:
-            await self._device.set_rgb(*self._rgb, self._attr_brightness)
+            await self._device.set_rgb(self._rgb, self._attr_brightness)
         self._attr_is_on = True
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -145,9 +139,10 @@ class DoHomeLightEntity(LightEntity):
             await self._device.turn_off()
 
     async def _when_connected(self) -> bool:
-        if self._device is None or not self._device.connected:
+        if not self._device.connected:
             try:
-                self._device = await wait_for(self._gateway.add_light(self._sid), timeout=3.0)
+                await self._device.get_time()
+                self._attr_available = True
             except (aioexc.TimeoutError, aioexc.CancelledError, IOError):
                 self._attr_available = False
                 return False
