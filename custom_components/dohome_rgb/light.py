@@ -27,7 +27,7 @@ from homeassistant.components.light import (
 import homeassistant.util.color as color_util
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from dohome_api import DoHomeLightsBroadcast, DoHomeGateway
+from dohome_api import DoHomeLightsBroadcast, DoHomeGateway, NotEnoughException
 from . import CONF_SIDS
 
 # pylint: disable=unused-argument,too-many-instance-attributes
@@ -95,7 +95,7 @@ class DoHomeLightEntity(LightEntity):
             return
         try:
             state = await self._device.get_state()
-        except (aioexc.TimeoutError, aioexc.CancelledError):
+        except (aioexc.TimeoutError, aioexc.CancelledError, NotEnoughException):
             self._attr_available = False
             return
         self._attr_available = True
@@ -143,7 +143,12 @@ class DoHomeLightEntity(LightEntity):
             try:
                 await self._device.get_time()
                 self._attr_available = True
-            except (aioexc.TimeoutError, aioexc.CancelledError, IOError):
+            except (
+                aioexc.TimeoutError,
+                aioexc.CancelledError,
+                NotEnoughException,
+                IOError,
+            ):
                 self._attr_available = False
                 return False
         return True

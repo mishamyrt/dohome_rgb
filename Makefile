@@ -2,8 +2,9 @@ VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
 
 deploy:
-	ssh hass "rm -rf config/custom_components/dohome_rgb"
-	rsync -r custom_components/dohome_rgb/ hass:config/custom_components/dohome_rgb
+	rm -rf ../myrt_home/bundle/home_assistant/custom_components/dohome_rgb
+	cp -r custom_components/dohome_rgb ../myrt_home/bundle/home_assistant/custom_components/dohome_rgb
+	cd ../myrt_home && make deploy
 restart:
 	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
 configure:
