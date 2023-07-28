@@ -1,6 +1,7 @@
 """Support for DoHome RGB Lights"""
 import logging
 from datetime import timedelta
+import asyncio
 import asyncio.exceptions as aioexc
 from typing import (
     Callable,
@@ -75,6 +76,7 @@ class DoHomeLightEntity(LightEntity):
     _sids: List[str]
 
     def __init__(self, hass, sids: List[str], device: DoHomeLightsBroadcast) -> None:
+        self.hass = hass
         self._device = device
         self._sids = sids
 
@@ -88,13 +90,10 @@ class DoHomeLightEntity(LightEntity):
         """Return the unique id of the device."""
         return '-'.join(self._sids)
 
-    async def async_update(self) -> None:
-        """Reads state from the device"""
-        if not await self._when_connected():
-            self._attr_available = False
-            return
+    async def _update_state(self) -> None:
         try:
-            state = await self._device.get_state()
+            state_task = asyncio.create_task(self._device.get_state())
+            state = await state_task
         except (aioexc.TimeoutError, aioexc.CancelledError, NotEnoughException):
             self._attr_available = False
             return
@@ -111,6 +110,17 @@ class DoHomeLightEntity(LightEntity):
             self._attr_color_mode = COLOR_MODE_HS
             self._attr_brightness = state["brightness"]
             self._rgb = tuple(state["rgb"])
+        self.async_write_ha_state()
+
+    async def async_update(self) -> None:
+        """Reads state from the device"""
+        if not await asyncio.create_task(self._when_connected()):
+            self._attr_available = False
+            return
+        await asyncio.wait([
+            asyncio.create_task(self._update_state())
+        ])
+
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
