@@ -1,7 +1,6 @@
 """Support for DoHome RGB Lights"""
 import logging
 from datetime import timedelta
-import asyncio
 import asyncio.exceptions as aioexc
 from typing import (
     Callable,
@@ -92,8 +91,7 @@ class DoHomeLightEntity(LightEntity):
 
     async def _update_state(self) -> None:
         try:
-            state_task = asyncio.create_task(self._device.get_state())
-            state = await state_task
+            state = await self._device.get_state()
         except (aioexc.TimeoutError, aioexc.CancelledError, NotEnoughException):
             self._attr_available = False
             return
@@ -114,12 +112,10 @@ class DoHomeLightEntity(LightEntity):
 
     async def async_update(self) -> None:
         """Reads state from the device"""
-        if not await asyncio.create_task(self._when_connected()):
+        if not await self._when_connected():
             self._attr_available = False
             return
-        await asyncio.wait([
-            asyncio.create_task(self._update_state())
-        ])
+        await self._update_state()
 
 
     async def async_turn_on(self, **kwargs: Any) -> None:
