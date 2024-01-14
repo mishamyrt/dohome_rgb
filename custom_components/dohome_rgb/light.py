@@ -24,8 +24,6 @@ from homeassistant.helpers.typing import (
 
 from .constants import CONF_SIDS
 
-# pylint: disable=unused-argument,too-many-instance-attributes
-
 SCAN_INTERVAL = timedelta(seconds=10)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
