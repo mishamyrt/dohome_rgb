@@ -9,6 +9,9 @@
         <a href="https://github.com/custom-components/hacs">
             <img src="https://img.shields.io/badge/HACS-Custom-orange.svg" />
         </a>
+        <a href="https://github.com/mishamyrt/dohome_rgb/tags">
+            <img src="https://img.shields.io/github/v/tag/mishamyrt/dohome_rgb.svg?sort=semver" />
+        </a>
     </p>
 </p>
 
