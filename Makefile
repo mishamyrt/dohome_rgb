@@ -1,16 +1,19 @@
 VENV_PATH = ./venv
 VENV = . $(VENV_PATH)/bin/activate;
+PIP = pip --disable-pip-version-check
 
-deploy:
-	rm -rf ../myrt_home/bundle/home_assistant/custom_components/dohome_rgb
-	cp -r custom_components/dohome_rgb ../myrt_home/bundle/home_assistant/custom_components/dohome_rgb
-	cd ../myrt_home && make deploy
-restart:
-	ssh hass "source /etc/profile.d/homeassistant.sh && ha core restart"
 configure:
+	rm -rf $(VENV_PATH)
 	python3 -m venv $(VENV_PATH)
-	$(VENV) pip install -r requirements.txt
+	$(VENV) $(PIP) install -r requirements.txt
 clean:
 	rm -rf venv
+
+.PHONY: lint
 lint:
+	$(VENV) ruff check custom_components/
 	$(VENV) pylint custom_components/
+
+local-bundle:
+	rm -rf ../myrt_home/services/home-assistant/bundle/custom_components/dohome_rgb/
+	cp -r custom_components/dohome_rgb ../myrt_home/services/home-assistant/bundle/custom_components/

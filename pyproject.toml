@@ -1,0 +1,33 @@
+[project]
+name = "dohome_rgb"
+authors = [
+    {name = "Mikhael Khrustik", email = "misha@myrt.co"},
+]
+description = "DoHome lights Home Assistant integration"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["home-assistant", "dohome"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+version = "v0.4.0"
+
+[tool.ruff]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
