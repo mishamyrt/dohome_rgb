@@ -3,7 +3,7 @@
   "name": "DoHome RGB lights",
   "codeowners": ["@mishamyrt"],
   "documentation": "https://github.com/mishamyrt/dohome_rgb",
-  "iot_class": "local_push",
+  "iot_class": "local_polling",
   "issue_tracker": "https://github.com/mishamyrt/dohome_rgb/issues",
   "requirements": ["dohome-api==0.2.12"],
   "version": "0.5.0"
