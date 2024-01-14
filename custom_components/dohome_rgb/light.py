@@ -1,39 +1,32 @@
 """Support for DoHome RGB Lights"""
-import logging
+import asyncio.exceptions as ioexceptions
 from datetime import timedelta
-import asyncio.exceptions as aioexc
-from typing import (
-    Callable,
-    Optional,
-    Final,
-    Any,
-    Tuple,
-    List
+from typing import Any, Callable, Final, Optional
+
+import homeassistant.helpers.config_validation as cv
+import homeassistant.util.color as color_util
+import voluptuous as vol
+from dohome_api import DoHomeGateway, DoHomeLightsBroadcast, NotEnoughException
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    ATTR_COLOR_TEMP,
+    ATTR_HS_COLOR,
+    COLOR_MODE_COLOR_TEMP,
+    COLOR_MODE_HS,
+    PLATFORM_SCHEMA,
+    LightEntity,
 )
 from homeassistant.helpers.typing import (
     ConfigType,
     DiscoveryInfoType,
     HomeAssistantType,
 )
-from homeassistant.components.light import (
-    ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
-    ATTR_HS_COLOR,
-    COLOR_MODE_HS,
-    COLOR_MODE_COLOR_TEMP,
-    PLATFORM_SCHEMA,
-    LightEntity,
-)
-import homeassistant.util.color as color_util
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from dohome_api import DoHomeLightsBroadcast, DoHomeGateway, NotEnoughException
-from . import CONF_SIDS
+
+from .constants import CONF_SIDS
 
 # pylint: disable=unused-argument,too-many-instance-attributes
 
 SCAN_INTERVAL = timedelta(seconds=10)
-_LOGGER = logging.getLogger(__name__)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_SIDS): cv.ensure_list
@@ -69,12 +62,12 @@ class DoHomeLightEntity(LightEntity):
     _attr_color_temp: int = 320
     _attr_is_on: bool = False
     _attr_available: bool = False
-    _rgb: Tuple[int, int, int] = None
+    _rgb: Optional[tuple[int, int, int]] = None
     # Late init values
     _device: DoHomeLightsBroadcast
-    _sids: List[str]
+    _sids: list[str]
 
-    def __init__(self, hass, sids: List[str], device: DoHomeLightsBroadcast) -> None:
+    def __init__(self, hass, sids: list[str], device: DoHomeLightsBroadcast) -> None:
         self.hass = hass
         self._device = device
         self._sids = sids
@@ -92,7 +85,7 @@ class DoHomeLightEntity(LightEntity):
     async def _update_state(self) -> None:
         try:
             state = await self._device.get_state()
-        except (aioexc.TimeoutError, aioexc.CancelledError, NotEnoughException):
+        except (ioexceptions.TimeoutError, ioexceptions.CancelledError, NotEnoughException):
             self._attr_available = False
             return
         self._attr_available = True
@@ -150,8 +143,8 @@ class DoHomeLightEntity(LightEntity):
                 await self._device.get_time()
                 self._attr_available = True
             except (
-                aioexc.TimeoutError,
-                aioexc.CancelledError,
+                ioexceptions.TimeoutError,
+                ioexceptions.CancelledError,
                 NotEnoughException,
                 IOError,
             ):
