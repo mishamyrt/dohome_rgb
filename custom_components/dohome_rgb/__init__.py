@@ -1,7 +1,6 @@
 """DoHome Home Assistant integration"""
-import voluptuous as vol
-from homeassistant.const import CONF_PLATFORM
-from homeassistant.helpers import config_validation as cv
+import homeassistant.helpers.config_validation as cv
+from homeassistant.const import Platform
 from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.typing import (
     ConfigType,
@@ -10,14 +9,8 @@ from homeassistant.helpers.typing import (
 
 from .constants import DOMAIN
 
-PLATFORM_SCHEMA = vol.Schema({
-    vol.Required(CONF_PLATFORM): 'dohome_rgb',
-    vol.Required('sids'): vol.All(cv.ensure_list, [cv.string])
-})
-
-CONFIG_SCHEMA = vol.Schema({
-    'light': vol.All(cv.ensure_list, [PLATFORM_SCHEMA])
-})
+CONFIG_SCHEMA = cv.platform_only_config_schema(DOMAIN)
+PLATFORMS = [Platform.LIGHT]
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
     """Setup DoHome platform"""
