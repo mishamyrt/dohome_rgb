@@ -5,9 +5,11 @@ from dohome_api.transport.util import get_discovery_host
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers.selector import selector
+from logging import getLogger
 
 from .constants import CONF_GATEWAY, CONF_NAME, CONF_SIDS, DOMAIN
 
+_LOGGER = getLogger(__name__)
 
 def _validate_gateway_address(address: str) -> bool:
     """Basic validation for the gateway address format (IPv4 or multicast format)"""
@@ -58,7 +60,8 @@ class DoHomeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         gateway = DoHomeGateway(self.gateway_address)
         try:
             self.devices = await gateway.discover_devices(10)
-        except Exception: # pylint: disable=broad-except
+        except Exception as exc: # pylint: disable=broad-except
+            _LOGGER.error("Error connecting to gateway: %s", exc)
             return self.async_abort(reason="cannot_connect")
 
         if user_input is not None:
