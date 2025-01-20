@@ -26,7 +26,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             },
             "name": f"DoHome {info['sid']}",
             "manufacturer": "DoHome",
-            "model": f"{info['type'].name} ({info['chip']})",
+            "model": f"{info['type']} ({info['chip']})",
         },
         "id": device_id
     }
