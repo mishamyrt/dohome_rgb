@@ -1,11 +1,11 @@
 """DoHome Home Assistant integration"""
 import homeassistant.helpers.config_validation as cv
-from dohome_api import DoHomeGateway
+from dohome_api import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .constants import CONF_GATEWAY, CONF_NAME, CONF_SIDS, DOMAIN
+from .constants import CONF_HOST, CONF_INFO, DOMAIN
 
 CONFIG_SCHEMA = cv.platform_only_config_schema(DOMAIN)
 PLATFORMS = [Platform.LIGHT]
@@ -15,18 +15,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     assert entry.unique_id is not None
     hass.data.setdefault(DOMAIN, {})
 
-    device_id = "_".join(entry.data[CONF_SIDS])
+    info: DeviceInfo = entry.data[CONF_INFO]
+    device_id = f"dohome_{info['sid']}"
 
     hass.data[DOMAIN][entry.entry_id] = {
-        "sids": entry.data[CONF_SIDS],
-        "gateway": entry.data[CONF_GATEWAY],
-        "info": {
+        CONF_HOST: entry.data[CONF_HOST],
+        CONF_INFO: {
             "identifiers": {
                 (DOMAIN, device_id)
             },
-            "name": f"DoHome {entry.data[CONF_NAME]}",
+            "name": f"DoHome {info['sid']}",
             "manufacturer": "DoHome",
-            "model": "WiFi RGB light bulb",
+            "model": f"{info['type'].name} ({info['chip']})",
         },
         "id": device_id
     }

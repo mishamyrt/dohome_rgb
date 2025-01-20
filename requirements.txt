@@ -1,4 +1,4 @@
 pylint==3.0.3
-dohome-api==0.2.6
+dohome-api==1.0.0
 ruff==0.1.13
 homeassistant
