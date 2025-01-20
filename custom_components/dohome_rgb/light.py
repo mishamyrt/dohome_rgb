@@ -5,9 +5,9 @@ from typing import Any
 
 import homeassistant.util.color as color_util
 import voluptuous as vol
+from dohome_api import doit
 from dohome_api.device import KELVIN_MAX, KELVIN_MIN, DoHomeDevice, LightMode
 from dohome_api.exc import DoHomeException
-from dohome_api.stream import StreamClient
 from homeassistant import config_entries, core
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -17,8 +17,9 @@ from homeassistant.components.light import (
     ColorMode,
     LightEntity,
 )
+from homeassistant.helpers.entity import DeviceInfo
 
-from .constants import CONF_HOST, CONF_INFO, DOMAIN
+from .constants import CONF_DEVICE, CONF_HOST, CONF_INFO, DOMAIN
 
 SCAN_INTERVAL = timedelta(seconds=10)
 
@@ -34,11 +35,10 @@ async def async_setup_entry(
 ):
     """Set up desk light."""
     data = hass.data[DOMAIN][config_entry.entry_id]
-    client = StreamClient(data[CONF_HOST], disconnect_timeout=8)
-    device = DoHomeDevice(client)
     async_add_entities([DoHomeLightEntity(
-        device,
+        data[CONF_DEVICE],
         data[CONF_INFO],
+        config_entry.entry_id,
     )])
 
 class DoHomeLightEntity(LightEntity):
@@ -58,17 +58,26 @@ class DoHomeLightEntity(LightEntity):
     _available = False
 
     _device: DoHomeDevice
-    _info: dict
+    _info: doit.DeviceInfo
     _attr_name: str
 
-    def __init__(self, device: DoHomeDevice, info: dict) -> None:
+    def __init__(self, device: DoHomeDevice, info: doit.DeviceInfo, entry_id: str) -> None:
+        self._entry_id = entry_id
         self._info = info
         self._device = device
-        self._attr_name = f"{info["name"]} Light"
+        self._attr_name = f"DoHome {info['sid']}"
+        self._attr_unique_id = info["mac"]
 
     @property
     def device_info(self):
-        return self._info
+        return DeviceInfo(
+            identifiers={
+                (DOMAIN, self._info["mac"])
+            },
+            name=self.name,
+            model=f'{self._info["type"]} {self._info["chip"]}',
+            sw_version="1.1.0"
+        )
 
     @property
     def color_mode(self) -> ColorMode:

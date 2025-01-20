@@ -1,11 +1,11 @@
 """DoHome Home Assistant integration"""
 import homeassistant.helpers.config_validation as cv
-from dohome_api import DeviceInfo
+from dohome_api import DeviceInfo, DoHomeDevice, StreamClient
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .constants import CONF_HOST, CONF_INFO, DOMAIN
+from .constants import CONF_DEVICE, CONF_HOST, CONF_INFO, DOMAIN
 
 CONFIG_SCHEMA = cv.platform_only_config_schema(DOMAIN)
 PLATFORMS = [Platform.LIGHT]
@@ -13,31 +13,19 @@ PLATFORMS = [Platform.LIGHT]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Generic BT from a config entry."""
     assert entry.unique_id is not None
-    hass.data.setdefault(DOMAIN, {})
 
+    host = entry.data[CONF_HOST]
     info: DeviceInfo = entry.data[CONF_INFO]
-    device_id = f"dohome_{info['sid']}"
 
+    client = StreamClient(host, disconnect_timeout=8)
+    device = DoHomeDevice(client)
+
+    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        CONF_HOST: entry.data[CONF_HOST],
-        CONF_INFO: {
-            "identifiers": {
-                (DOMAIN, entry.unique_id)
-            },
-            "name": f"DoHome {info['sid']}",
-            "manufacturer": "DoHome",
-            "model": f"{info['type']} ({info['chip']})",
-            "id": device_id
-        },
-        "id": device_id
+        CONF_DEVICE: device,
+        CONF_INFO: info
     }
-#  "hostname": "DoHome_7CAC.lan",
-#     "info": {
-#       "chip": "W600",
-#       "mac": "28:6d:cd:76:7c:ac",
-#       "sid": "7cac",
-#       "type": "DT-WYRGB"
-#     }
+
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
