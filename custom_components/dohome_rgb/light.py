@@ -45,15 +45,15 @@ class DoHomeLightEntity(LightEntity):
     """DoHome light entity"""
 
     # Constants attributes
-    _attr_supported_color_modes = {ColorMode.RGB, ColorMode.BRIGHTNESS}
+    _attr_supported_color_modes = {ColorMode.HS, ColorMode.COLOR_TEMP}
     _attr_min_color_temp_kelvin = KELVIN_MIN
     _attr_max_color_temp_kelvin = KELVIN_MAX
 
     # Initial state
     _color_mode = ColorMode.COLOR_TEMP
-    _color_temp = 320
+    _color_temp = 3500
     _rgb = (0, 0, 0)
-    _brightness = 200
+    _brightness = 255
     _is_on = False
     _available = False
 
