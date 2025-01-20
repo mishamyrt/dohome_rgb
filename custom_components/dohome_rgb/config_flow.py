@@ -28,6 +28,8 @@ class DoHomeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 device = open_device(hostname)
                 info = await device.get_info()
+                await self.async_set_unique_id(info["mac"])
+                self._abort_if_unique_id_configured()
                 return self.async_create_entry(
                     title=hostname,
                     data={
