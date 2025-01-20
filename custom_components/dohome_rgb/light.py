@@ -125,7 +125,7 @@ class DoHomeLightEntity(LightEntity):
     async def async_update(self) -> None:
         """Reads state from the device"""
         if not await self._when_connected():
-            self._attr_available = False
+            self._available = False
             return
         await self._update_state()
 
@@ -136,19 +136,19 @@ class DoHomeLightEntity(LightEntity):
             return
         if ATTR_HS_COLOR in kwargs:
             self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
-            self._attr_color_mode = ColorMode.HS
+            self._color_mode = ColorMode.HS
         elif ATTR_COLOR_TEMP_KELVIN in kwargs:
-            self._attr_color_temp = kwargs[ATTR_COLOR_TEMP_KELVIN]
-            self._attr_color_mode = ColorMode.COLOR_TEMP
+            self._color_temp = kwargs[ATTR_COLOR_TEMP_KELVIN]
+            self._color_mode = ColorMode.COLOR_TEMP
         if ATTR_BRIGHTNESS in kwargs:
-            self._attr_brightness = kwargs[ATTR_BRIGHTNESS]
-        if self._attr_color_mode == ColorMode.COLOR_TEMP:
+            self._brightness = kwargs[ATTR_BRIGHTNESS]
+        if self._color_mode == ColorMode.COLOR_TEMP:
             await self._device.set_white_temperature(
-                self._attr_color_temp,
-                self._attr_brightness)
+                self._color_temp,
+                self._brightness)
         else:
-            await self._device.set_color(self._rgb, self._attr_brightness)
-        self._attr_is_on = True
+            await self._device.set_color(self._rgb, self._brightness)
+        self._is_on = True
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
@@ -159,13 +159,13 @@ class DoHomeLightEntity(LightEntity):
         if not self._device.connected:
             try:
                 await self._device.get_info()
-                self._attr_available = True
+                self._available = True
             except (
                 aio_exceptions.TimeoutError,
                 aio_exceptions.CancelledError,
                 DoHomeException,
                 IOError,
             ):
-                self._attr_available = False
+                self._available = False
                 return False
         return True

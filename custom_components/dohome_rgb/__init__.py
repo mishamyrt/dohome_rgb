@@ -22,7 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         CONF_HOST: entry.data[CONF_HOST],
         CONF_INFO: {
             "identifiers": {
-                (DOMAIN, device_id)
+                (DOMAIN, entry.unique_id)
             },
             "name": f"DoHome {info['sid']}",
             "manufacturer": "DoHome",
