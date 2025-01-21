@@ -17,7 +17,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     host = entry.data[CONF_HOST]
     info: DeviceInfo = entry.data[CONF_INFO]
 
-    client = StreamClient(host, disconnect_timeout=8)
+    client = StreamClient(host, connect_timeout=2, request_timeout=4)
     device = DoHomeDevice(client)
 
     hass.data.setdefault(DOMAIN, {})
