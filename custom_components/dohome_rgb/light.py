@@ -109,7 +109,7 @@ class DoHomeLightEntity(LightEntity):
     async def _update_state(self) -> None:
         try:
             state = await self._device.get_state()
-        except (asyncio.TimeoutError, DoHomeException):
+        except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return
         self._available = True
@@ -149,7 +149,7 @@ class DoHomeLightEntity(LightEntity):
                     self._brightness)
             else:
                 await self._device.set_color(self._rgb, self._brightness)
-        except (asyncio.TimeoutError, DoHomeException):
+        except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return
         self._is_on = True
@@ -158,7 +158,7 @@ class DoHomeLightEntity(LightEntity):
         """Turn the light off."""
         try:
             await self._device.set_power(False)
-        except (asyncio.TimeoutError, DoHomeException):
+        except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return
         self._is_on = False
