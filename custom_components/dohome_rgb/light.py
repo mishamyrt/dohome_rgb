@@ -1,5 +1,5 @@
 """Support for DoHome RGB Lights"""
-import asyncio.exceptions as aio_exceptions
+import asyncio
 from datetime import timedelta
 from typing import Any
 
@@ -109,11 +109,7 @@ class DoHomeLightEntity(LightEntity):
     async def _update_state(self) -> None:
         try:
             state = await self._device.get_state()
-        except (
-            aio_exceptions.TimeoutError,
-            aio_exceptions.CancelledError,
-            DoHomeException,
-        ):
+        except (asyncio.TimeoutError, DoHomeException):
             self._available = False
             return
         self._available = True
@@ -133,16 +129,11 @@ class DoHomeLightEntity(LightEntity):
 
     async def async_update(self) -> None:
         """Reads state from the device"""
-        if not await self._when_connected():
-            self._available = False
-            return
         await self._update_state()
 
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
-        if not await self._when_connected():
-            return
         if ATTR_HS_COLOR in kwargs:
             self._rgb = color_util.color_hs_to_RGB(*kwargs[ATTR_HS_COLOR])
             self._color_mode = ColorMode.HS
@@ -151,30 +142,23 @@ class DoHomeLightEntity(LightEntity):
             self._color_mode = ColorMode.COLOR_TEMP
         if ATTR_BRIGHTNESS in kwargs:
             self._brightness = kwargs[ATTR_BRIGHTNESS]
-        if self._color_mode == ColorMode.COLOR_TEMP:
-            await self._device.set_white_temperature(
-                self._color_temp,
-                self._brightness)
-        else:
-            await self._device.set_color(self._rgb, self._brightness)
+        try:
+            if self._color_mode == ColorMode.COLOR_TEMP:
+                await self._device.set_white_temperature(
+                    self._color_temp,
+                    self._brightness)
+            else:
+                await self._device.set_color(self._rgb, self._brightness)
+        except (asyncio.TimeoutError, DoHomeException):
+            self._available = False
+            return
         self._is_on = True
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
-        if await self._when_connected():
+        try:
             await self._device.set_power(False)
-
-    async def _when_connected(self) -> bool:
-        if not self._device.connected:
-            try:
-                await self._device.get_info()
-                self._available = True
-            except (
-                aio_exceptions.TimeoutError,
-                aio_exceptions.CancelledError,
-                DoHomeException,
-                IOError,
-            ):
-                self._available = False
-                return False
-        return True
+        except (asyncio.TimeoutError, DoHomeException):
+            self._available = False
+            return
+        self._is_on = False
