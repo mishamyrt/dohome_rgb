@@ -5,9 +5,19 @@ from typing import Any
 
 import homeassistant.util.color as color_util
 import voluptuous as vol
-from dohome_api import doit
-from dohome_api.device import KELVIN_MAX, KELVIN_MIN, DoHomeDevice, LightMode
-from dohome_api.exc import DoHomeException
+from dohome.api import APIClient, HardwareInfo, parse_hardware_info
+from dohome.api import DeviceInfo as APIDeviceInfo
+from dohome.color import (
+    KELVIN_MAX,
+    KELVIN_MIN,
+    LightMode,
+    apply_brightness,
+    parse_state,
+    to_dorgb,
+    to_dowhite,
+)
+from dohome.exc import DoHomeException
+from dohome.socket import TCPStream
 from homeassistant import config_entries, core
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -19,7 +29,7 @@ from homeassistant.components.light import (
 )
 from homeassistant.helpers.entity import DeviceInfo
 
-from .constants import CONF_DEVICE, CONF_HOST, CONF_INFO, DOMAIN
+from .constants import CONF_HOST, CONF_INFO, DOMAIN
 
 SCAN_INTERVAL = timedelta(seconds=10)
 
@@ -32,11 +42,14 @@ async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
     async_add_entities,
-):
+) -> None:
     """Set up desk light."""
     data = hass.data[DOMAIN][config_entry.entry_id]
+    stream = TCPStream(data[CONF_HOST])
+    client = APIClient(stream)
+
     async_add_entities([DoHomeLightEntity(
-        data[CONF_DEVICE],
+        client,
         data[CONF_INFO],
         config_entry.entry_id,
     )])
@@ -57,26 +70,31 @@ class DoHomeLightEntity(LightEntity):
     _is_on = False
     _available = False
 
-    _device: DoHomeDevice
-    _info: doit.DeviceInfo
+    _client: APIClient
+    _info: APIDeviceInfo
     _attr_name: str
+    _hw_info: HardwareInfo
 
-    def __init__(self, device: DoHomeDevice, info: doit.DeviceInfo, entry_id: str) -> None:
+    def __init__(self, client: APIClient, info: APIDeviceInfo, entry_id: str):
         self._entry_id = entry_id
         self._info = info
-        self._device = device
+        self._client = client
         self._attr_name = f"DoHome {info['sid']}"
-        self._attr_unique_id = info["mac"]
+        self._attr_unique_id = info["dev_id"]
+        self._hw_info = parse_hardware_info(info["dev_id"])
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={
                 (DOMAIN, self._info["mac"])
             },
             name=self.name,
-            model=f'{self._info["type"]} {self._info["chip"]}',
-            sw_version="1.1.0"
+            manufacturer="DoHome",
+            model=self._hw_info["type"].name,
+            sw_version=self._info["ver"],
+            hw_version=self._hw_info["chip"],
+            serial_number=self._hw_info["sid"]
         )
 
     @property
@@ -108,7 +126,8 @@ class DoHomeLightEntity(LightEntity):
 
     async def _update_state(self) -> None:
         try:
-            state = await self._device.get_state()
+            raw_state = await self._client.get_state()
+            state = parse_state(raw_state)
         except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return
@@ -144,11 +163,13 @@ class DoHomeLightEntity(LightEntity):
             self._brightness = kwargs[ATTR_BRIGHTNESS]
         try:
             if self._color_mode == ColorMode.COLOR_TEMP:
-                await self._device.set_white_temperature(
-                    self._color_temp,
-                    self._brightness)
+                white = to_dowhite(self._color_temp)
+                white = apply_brightness(white, self._brightness)
+                await self._client.set_white(white)
             else:
-                await self._device.set_color(self._rgb, self._brightness)
+                color = to_dorgb(self._rgb)
+                color = apply_brightness(color, self._brightness)
+                await self._client.set_color(color)
         except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return
@@ -157,7 +178,7 @@ class DoHomeLightEntity(LightEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
         try:
-            await self._device.set_power(False)
+            await self._client.set_power(False)
         except (asyncio.TimeoutError, DoHomeException, OSError):
             self._available = False
             return

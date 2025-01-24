@@ -2,7 +2,8 @@
 from logging import getLogger
 
 import voluptuous as vol
-from dohome_api import open_device
+from dohome.api import APIClient
+from dohome.socket import TCPStream
 from homeassistant import config_entries
 from homeassistant.core import callback
 
@@ -24,23 +25,26 @@ class DoHomeConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             hostname = user_input.get(CONF_HOST)
-
             try:
-                device = open_device(hostname)
-                info = await device.get_info()
-                await self.async_set_unique_id(info["mac"])
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=hostname,
-                    data={
-                        CONF_HOST: hostname,
-                        CONF_INFO: info,
-                    },
-                )
-            except Exception as exc: # pylint: disable=broad-except
+                stream = TCPStream(hostname)
+                client = APIClient(stream)
+            except Exception as exc:
                 errors["base"] = "cannot_connect"
                 _LOGGER.exception("Error connecting to device: %s", exc)
-
+            try:
+                info = await client.get_device_info()
+            except Exception as exc: # pylint: disable=broad-except
+                errors["base"] = "cannot_read_device_info"
+                _LOGGER.exception("Error connecting to device: %s", exc)
+            await self.async_set_unique_id(info['dev_id'])
+            self._abort_if_unique_id_configured()
+            return self.async_create_entry(
+                title=hostname,
+                data={
+                    CONF_HOST: hostname,
+                    CONF_INFO: info,
+                },
+            )
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(

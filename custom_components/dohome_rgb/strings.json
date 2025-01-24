@@ -1,5 +1,9 @@
 {
   "config": {
+    "error": {
+      "cannot_connect": "Cannot connect to device",
+      "cannot_read_device_info": "Cannot read device info"
+    },
     "step": {
       "user": {
         "data": {

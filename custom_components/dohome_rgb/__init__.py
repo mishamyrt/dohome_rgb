@@ -1,11 +1,10 @@
 """DoHome Home Assistant integration"""
 import homeassistant.helpers.config_validation as cv
-from dohome_api import DeviceInfo, DoHomeDevice, StreamClient
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .constants import CONF_DEVICE, CONF_HOST, CONF_INFO, DOMAIN
+from .constants import CONF_HOST, CONF_INFO, DOMAIN
 
 CONFIG_SCHEMA = cv.platform_only_config_schema(DOMAIN)
 PLATFORMS = [Platform.LIGHT]
@@ -15,14 +14,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     assert entry.unique_id is not None
 
     host = entry.data[CONF_HOST]
-    info: DeviceInfo = entry.data[CONF_INFO]
-
-    client = StreamClient(host, connect_timeout=2, request_timeout=4)
-    device = DoHomeDevice(client)
+    info = entry.data[CONF_INFO]
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = {
-        CONF_DEVICE: device,
+        CONF_HOST: host,
         CONF_INFO: info
     }
 
