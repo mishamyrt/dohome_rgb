@@ -87,7 +87,7 @@ class DoHomeLightEntity(LightEntity):
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={
-                (DOMAIN, self._info["mac"])
+                (DOMAIN, self._info["dev_id"])
             },
             name=self.name,
             manufacturer="DoHome",
