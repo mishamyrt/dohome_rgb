@@ -79,9 +79,9 @@ class DoHomeLightEntity(LightEntity):
         self._entry_id = entry_id
         self._info = info
         self._client = client
-        self._attr_name = f"DoHome {info['sid']}"
-        self._attr_unique_id = info["dev_id"]
         self._hw_info = parse_hardware_info(info["dev_id"])
+        self._attr_name = f"DoHome {self._hw_info['sid']}"
+        self._attr_unique_id = info["dev_id"]
 
     @property
     def device_info(self) -> DeviceInfo:
