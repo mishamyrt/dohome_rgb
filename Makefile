@@ -11,6 +11,6 @@ clean:
 	rm -rf venv
 
 .PHONY: check
-check:
+lint:
 	uv run ruff check custom_components/
 	uv run pylint custom_components/

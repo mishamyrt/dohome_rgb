@@ -651,27 +651,6 @@ wheels = [
 ]
 
 [[package]]
-name = "argparse"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/dd/e617cfc3f6210ae183374cd9f6a26b20514bbb5a792af97949c5aacddf0f/argparse-1.4.0.tar.gz", hash = "sha256:62b089a55be1d8949cd2bc7e0df0bddb9e028faefc8c32038cc84862aefdd6e4", size = 70508, upload-time = "2015-09-12T20:22:16.217Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl", hash = "sha256:c31647edb69fd3d465a847ea3157d37bed1f95f19760b11a47aa91c04b666314", size = 23000, upload-time = "2015-09-14T16:03:16.137Z" },
-]
-
-[[package]]
-name = "arrrgs"
-version = "3.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "argparse" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ee/fb/872361c95912b9a764b238157d0c5962003b46bf7525ebebd4d0f6e5858b/arrrgs-3.1.0.tar.gz", hash = "sha256:604c490dcc251963291356ab5f5adcf311ae299e4657a54a38ce390e721c1046", size = 24868, upload-time = "2023-12-05T20:16:29.682Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/62/63/b4ae9a7c62e87f3961700bfa7bb521ed97a228816d13f9409584d2894301/arrrgs-3.1.0-py3-none-any.whl", hash = "sha256:7a9f763654569f4c6fd8690b07680a7a5e767860c7299b3fd375faf763ba08c9", size = 6334, upload-time = "2023-12-05T20:16:27.525Z" },
-]
-
-[[package]]
 name = "astral"
 version = "2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1528,15 +1507,14 @@ wheels = [
 
 [[package]]
 name = "dohome-api"
-version = "1.1.0"
+version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiodatagram" },
-    { name = "arrrgs" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f1/f3/aa53c9a38ffab66530e9cb52375e9be2c072831cff8090f45256b363eebb/dohome_api-1.1.0.tar.gz", hash = "sha256:9461cb442dd23ce423421313f6a2303f1903ca2db7178d8d59452bb1d36aa1eb", size = 23996, upload-time = "2025-01-24T15:21:16.725Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/ef/d0d2ebd6043880b45f9a83283e1b7c62e0497883c1718525881cf20ecada/dohome_api-2.2.1.tar.gz", hash = "sha256:870dde5be34b8de3a9d35a70984cebfbc2a19e706f28cbd9fbf27157394f0f44", size = 54393, upload-time = "2026-03-19T17:03:32.701Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/48/b163d80d053601b41d1795170e5d987cf8289fe6aba21b2bd1a5296f5aa0/dohome_api-1.1.0-py3-none-any.whl", hash = "sha256:e2a9d7f819ff7750b61f52a76b32842f8a0dbe3a2e0c0f434a06508451c1fed8", size = 19995, upload-time = "2025-01-24T15:21:14.857Z" },
+    { url = "https://files.pythonhosted.org/packages/48/9c/acf0871fc49ced1e4c086e11913781e7dc9f15ad00d290a60dfd0604a5ff/dohome_api-2.2.1-py3-none-any.whl", hash = "sha256:b54c0638d3c395b04005c385aa54be7e3471fe15cd074e80654108a7d8e89ff6", size = 18303, upload-time = "2026-03-19T17:03:31.273Z" },
 ]
 
 [[package]]
@@ -1555,7 +1533,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dohome-api", specifier = "==1.1.0" },
+    { name = "dohome-api", specifier = "==2.2.1" },
     { name = "homeassistant" },
     { name = "pylint", specifier = "==4.0.5" },
     { name = "ruff", specifier = "==0.15.6" },

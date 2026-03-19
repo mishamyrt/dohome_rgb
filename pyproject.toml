@@ -16,7 +16,7 @@ dependencies = [
     "homeassistant",
     "pylint==4.0.5",
     "ruff==0.15.6",
-    "dohome-api==1.1.0",
+    "dohome-api==2.2.1",
 ]
 version = "v0.0.0"
 
@@ -41,3 +41,10 @@ lint.select = [
 [tool.basedpyright]
 venvPath = "."
 venv = ".venv"
+reportSelfClsParameterName = false
+reportUnannotatedClassAttribute = false
+reportConstantRedefinition = false
+reportExplicitAny = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportAny = false

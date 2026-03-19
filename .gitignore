@@ -2,3 +2,4 @@
 .vscode/
 .cursor/
 .DS_Store
+typings/
