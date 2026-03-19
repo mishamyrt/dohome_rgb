@@ -14,3 +14,7 @@ clean:
 lint:
 	uv run ruff check custom_components/
 	uv run pylint custom_components/
+
+.PHONY: typecheck
+typecheck:
+	uv run basedpyright custom_components/

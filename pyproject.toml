@@ -17,6 +17,7 @@ dependencies = [
     "pylint==4.0.5",
     "ruff==0.15.6",
     "dohome-api==2.2.1",
+    "basedpyright>=1.38.3",
 ]
 version = "v0.0.0"
 
@@ -48,3 +49,4 @@ reportExplicitAny = false
 reportUnknownMemberType = false
 reportUnknownVariableType = false
 reportAny = false
+reportMissingTypeStubs = false
