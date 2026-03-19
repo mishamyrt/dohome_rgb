@@ -53,23 +53,12 @@ Copy `dohome_rgb` folder from latest release to `/config/custom_components` fold
 
 ## Configuration
 
-Devices are configured in groups. If you need to configure only one device, specify it in a separate group. Example:
+Devices are configured using config flow.
 
-```yaml
-light:
-  # Group of bulbs (e.g. a chandelier)
-  # entity_id will be dohome_rgb_2b5a_13a1_e77a
-  - platform: dohome_rgb
-    sids:
-      - '2b5a' # Last 4 symbols of device MAC-address
-      - '13a1'
-      - 'e77a'
-  # Individual bulb
-  # entity_id will be dohome_rgb_5f7e
-  - platform: dohome_rgb
-    sids:
-      - '5f7e'
-```
+1. Go integrations dashboard (/config/integrations/dashboard)
+2. Click "Add integration"
+3. Find "DoHome RGB"
+4. Enter light hostname
 
 ## Thanks
 
